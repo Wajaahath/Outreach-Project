@@ -1,0 +1,869 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Outreach_System_Functions.company_case_dynamo &mdash; outreach_project v1.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../_static/documentation_options.js?v=e160b93e"></script>
+      <script src="../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            outreach_project
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../Outreach_System_Functions.html">Outreach_System_Functions package</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">outreach_project</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">Outreach_System_Functions.company_case_dynamo</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for Outreach_System_Functions.company_case_dynamo</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">re</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">random</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">requests</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">bs4</span><span class="w"> </span><span class="kn">import</span> <span class="n">BeautifulSoup</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">time</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">sklearn.feature_extraction.text</span><span class="w"> </span><span class="kn">import</span> <span class="n">TfidfVectorizer</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">sklearn.metrics.pairwise</span><span class="w"> </span><span class="kn">import</span> <span class="n">cosine_similarity</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">difflib</span><span class="w"> </span><span class="kn">import</span> <span class="n">SequenceMatcher</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">langdetect</span><span class="w"> </span><span class="kn">import</span> <span class="n">detect</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">boto3</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">boto3.dynamodb.conditions</span><span class="w"> </span><span class="kn">import</span> <span class="n">Key</span><span class="p">,</span> <span class="n">Attr</span>
+
+
+<div class="viewcode-block" id="extract_case_study_info">
+<a class="viewcode-back" href="../../Outreach_System_Functions.html#Outreach_System_Functions.company_case_dynamo.extract_case_study_info">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">extract_case_study_info</span><span class="p">(</span><span class="n">case_study_text</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Extract comprehensive information from case study text.</span>
+
+<span class="sd">    :param case_study_text: str, full text of the case study</span>
+<span class="sd">    :return: dict with extracted info: industry, location, solution details, tech keywords, and company size indicators</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">industry_match</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;Industry:\s*(.*?)(?:\n|$)&#39;</span><span class="p">,</span> <span class="n">case_study_text</span><span class="p">)</span>
+    <span class="n">industry</span> <span class="o">=</span> <span class="n">industry_match</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="k">if</span> <span class="n">industry_match</span> <span class="k">else</span> <span class="s2">&quot;&quot;</span>
+
+    <span class="n">location_match</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;Location:\s*(.*?)(?:\n|$)&#39;</span><span class="p">,</span> <span class="n">case_study_text</span><span class="p">)</span>
+    <span class="n">location</span> <span class="o">=</span> <span class="n">location_match</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="k">if</span> <span class="n">location_match</span> <span class="k">else</span> <span class="s2">&quot;&quot;</span>
+
+    <span class="n">solution_details</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+    <span class="n">challenge_match</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;\*\*Challenge\*\*:\s*(.*?)(?:\*\*|\Z)&#39;</span><span class="p">,</span> <span class="n">case_study_text</span><span class="p">,</span> <span class="n">re</span><span class="o">.</span><span class="n">DOTALL</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">challenge_match</span><span class="p">:</span>
+        <span class="n">solution_details</span> <span class="o">+=</span> <span class="n">challenge_match</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="o">+</span> <span class="s2">&quot; &quot;</span>
+
+    <span class="n">approach_match</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;\*\*Approach\*\*:\s*(.*?)(?:\*\*|\Z)&#39;</span><span class="p">,</span> <span class="n">case_study_text</span><span class="p">,</span> <span class="n">re</span><span class="o">.</span><span class="n">DOTALL</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">approach_match</span><span class="p">:</span>
+        <span class="n">solution_details</span> <span class="o">+=</span> <span class="n">approach_match</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="o">+</span> <span class="s2">&quot; &quot;</span>
+
+    <span class="n">impact_match</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;\*\*Impact\*\*:\s*(.*?)(?:\*\*|\Z)&#39;</span><span class="p">,</span> <span class="n">case_study_text</span><span class="p">,</span> <span class="n">re</span><span class="o">.</span><span class="n">DOTALL</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">impact_match</span><span class="p">:</span>
+        <span class="n">solution_details</span> <span class="o">+=</span> <span class="n">impact_match</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+
+    <span class="n">tech_keywords</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">tech_patterns</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="sa">r</span><span class="s1">&#39;data (?:and|&amp;) analytics&#39;</span><span class="p">,</span> <span class="sa">r</span><span class="s1">&#39;cloud migration&#39;</span><span class="p">,</span> <span class="sa">r</span><span class="s1">&#39;data lakehouse&#39;</span><span class="p">,</span>
+        <span class="sa">r</span><span class="s1">&#39;agile&#39;</span><span class="p">,</span> <span class="sa">r</span><span class="s1">&#39;predictive&#39;</span><span class="p">,</span> <span class="sa">r</span><span class="s1">&#39;forecasting&#39;</span><span class="p">,</span> <span class="sa">r</span><span class="s1">&#39;moderniz(?:e|ation)&#39;</span><span class="p">,</span>
+        <span class="sa">r</span><span class="s1">&#39;integration&#39;</span><span class="p">,</span> <span class="sa">r</span><span class="s1">&#39;platform&#39;</span><span class="p">,</span> <span class="sa">r</span><span class="s1">&#39;digital transformation&#39;</span>
+    <span class="p">]</span>
+    <span class="k">for</span> <span class="n">pattern</span> <span class="ow">in</span> <span class="n">tech_patterns</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="n">pattern</span><span class="p">,</span> <span class="n">case_study_text</span><span class="p">,</span> <span class="n">re</span><span class="o">.</span><span class="n">IGNORECASE</span><span class="p">):</span>
+            <span class="n">tech_keywords</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="n">pattern</span><span class="p">,</span> <span class="n">case_study_text</span><span class="p">,</span> <span class="n">re</span><span class="o">.</span><span class="n">IGNORECASE</span><span class="p">)</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">lower</span><span class="p">())</span>
+
+    <span class="n">size_indicators</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;Fortune 500&quot;</span><span class="p">,</span> <span class="s2">&quot;enterprise&quot;</span><span class="p">,</span> <span class="s2">&quot;large&quot;</span><span class="p">,</span> <span class="s2">&quot;mid-size&quot;</span><span class="p">,</span> <span class="s2">&quot;small&quot;</span><span class="p">]</span>
+    <span class="n">company_size</span> <span class="o">=</span> <span class="p">[</span><span class="n">indicator</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="k">for</span> <span class="n">indicator</span> <span class="ow">in</span> <span class="n">size_indicators</span> <span class="k">if</span> <span class="n">re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="n">indicator</span><span class="p">,</span> <span class="n">case_study_text</span><span class="p">,</span> <span class="n">re</span><span class="o">.</span><span class="n">IGNORECASE</span><span class="p">)]</span>
+
+    <span class="k">return</span> <span class="p">{</span>
+        <span class="s2">&quot;industry&quot;</span><span class="p">:</span> <span class="n">industry</span><span class="p">,</span>
+        <span class="s2">&quot;location&quot;</span><span class="p">:</span> <span class="n">location</span><span class="p">,</span>
+        <span class="s2">&quot;solution_details&quot;</span><span class="p">:</span> <span class="n">solution_details</span><span class="p">,</span>
+        <span class="s2">&quot;tech_keywords&quot;</span><span class="p">:</span> <span class="n">tech_keywords</span><span class="p">,</span>
+        <span class="s2">&quot;company_size&quot;</span><span class="p">:</span> <span class="n">company_size</span>
+    <span class="p">}</span></div>
+
+
+
+<div class="viewcode-block" id="extract_about_from_homepage">
+<a class="viewcode-back" href="../../Outreach_System_Functions.html#Outreach_System_Functions.company_case_dynamo.extract_about_from_homepage">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">extract_about_from_homepage</span><span class="p">(</span><span class="n">url</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Extracts an &#39;about&#39;-like section from a company&#39;s homepage,</span>
+<span class="sd">    only if the detected language is English.</span>
+
+<span class="sd">    :param url: str, website URL</span>
+<span class="sd">    :return: str or None</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">headers</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s2">&quot;User-Agent&quot;</span><span class="p">:</span> <span class="s2">&quot;Mozilla/5.0&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;Accept-Language&quot;</span><span class="p">:</span> <span class="s2">&quot;en-US,en;q=0.9&quot;</span><span class="p">,</span>
+    <span class="p">}</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">response</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="n">headers</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">response</span><span class="o">.</span><span class="n">status_code</span> <span class="o">!=</span> <span class="mi">200</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span>
+        <span class="n">soup</span> <span class="o">=</span> <span class="n">BeautifulSoup</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">text</span><span class="p">,</span> <span class="s2">&quot;html.parser&quot;</span><span class="p">)</span>
+        <span class="n">text_blocks</span> <span class="o">=</span> <span class="n">soup</span><span class="o">.</span><span class="n">find_all</span><span class="p">([</span><span class="s2">&quot;p&quot;</span><span class="p">,</span> <span class="s2">&quot;div&quot;</span><span class="p">,</span> <span class="s2">&quot;section&quot;</span><span class="p">])</span>
+        <span class="n">about_keywords</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;we are&quot;</span><span class="p">,</span> <span class="s2">&quot;our mission&quot;</span><span class="p">,</span> <span class="s2">&quot;we believe&quot;</span><span class="p">,</span> <span class="s2">&quot;founded&quot;</span><span class="p">,</span> <span class="s2">&quot;company&quot;</span><span class="p">,</span> <span class="s2">&quot;team&quot;</span><span class="p">,</span> <span class="s2">&quot;who we are&quot;</span><span class="p">]</span>
+        <span class="n">candidate_blocks</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">block</span> <span class="ow">in</span> <span class="n">text_blocks</span><span class="p">:</span>
+            <span class="n">text</span> <span class="o">=</span> <span class="n">block</span><span class="o">.</span><span class="n">get_text</span><span class="p">(</span><span class="n">strip</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">text</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">text</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">100</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">detect</span><span class="p">(</span><span class="n">text</span><span class="p">)</span> <span class="o">!=</span> <span class="s2">&quot;en&quot;</span><span class="p">:</span>
+                    <span class="k">continue</span>
+            <span class="k">except</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="n">kw</span> <span class="ow">in</span> <span class="n">text</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="k">for</span> <span class="n">kw</span> <span class="ow">in</span> <span class="n">about_keywords</span><span class="p">):</span>
+                <span class="n">candidate_blocks</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">text</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">candidate_blocks</span><span class="p">:</span>
+            <span class="k">return</span> <span class="nb">max</span><span class="p">(</span><span class="n">candidate_blocks</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="nb">len</span><span class="p">)</span>
+    <span class="k">except</span><span class="p">:</span>
+        <span class="k">pass</span>
+    <span class="k">return</span> <span class="kc">None</span></div>
+
+
+
+<div class="viewcode-block" id="scrape_company_website">
+<a class="viewcode-back" href="../../Outreach_System_Functions.html#Outreach_System_Functions.company_case_dynamo.scrape_company_website">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">scrape_company_website</span><span class="p">(</span><span class="n">company</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Scrapes a company website to extract about information.</span>
+
+<span class="sd">    :param company: dict containing &#39;website&#39; and &#39;name&#39; keys</span>
+<span class="sd">    :return: dict with &#39;website&#39; and &#39;about_info&#39;</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">website_url</span> <span class="o">=</span> <span class="n">company</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;website&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
+    <span class="n">company_name</span> <span class="o">=</span> <span class="n">company</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;name&#39;</span><span class="p">,</span> <span class="s1">&#39;Unknown company&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">website_url</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;website&quot;</span><span class="p">:</span> <span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="s2">&quot;about_info&quot;</span><span class="p">:</span> <span class="s2">&quot;No website available&quot;</span><span class="p">}</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">website_url</span><span class="o">.</span><span class="n">startswith</span><span class="p">((</span><span class="s1">&#39;http://&#39;</span><span class="p">,</span> <span class="s1">&#39;https://&#39;</span><span class="p">)):</span>
+        <span class="n">website_url</span> <span class="o">=</span> <span class="s1">&#39;https://&#39;</span> <span class="o">+</span> <span class="n">website_url</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">about_info</span> <span class="o">=</span> <span class="n">extract_about_from_homepage</span><span class="p">(</span><span class="n">website_url</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">about_info</span><span class="p">:</span>
+            <span class="n">about_info</span> <span class="o">=</span> <span class="n">extract_about_from_homepage</span><span class="p">(</span><span class="n">website_url</span><span class="o">.</span><span class="n">rstrip</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;/about&#39;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">about_info</span><span class="p">:</span>
+                <span class="n">about_info</span> <span class="o">=</span> <span class="n">extract_about_from_homepage</span><span class="p">(</span><span class="n">website_url</span><span class="o">.</span><span class="n">rstrip</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;/about-us&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s2">&quot;website&quot;</span><span class="p">:</span> <span class="n">website_url</span><span class="p">,</span>
+            <span class="s2">&quot;about_info&quot;</span><span class="p">:</span> <span class="n">about_info</span> <span class="k">if</span> <span class="n">about_info</span> <span class="k">else</span> <span class="s2">&quot;No about information found&quot;</span>
+        <span class="p">}</span>
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;website&quot;</span><span class="p">:</span> <span class="n">website_url</span><span class="p">,</span> <span class="s2">&quot;about_info&quot;</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;Error scraping website: </span><span class="si">{</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">}</span></div>
+
+
+
+<div class="viewcode-block" id="normalize_text">
+<a class="viewcode-back" href="../../Outreach_System_Functions.html#Outreach_System_Functions.company_case_dynamo.normalize_text">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">normalize_text</span><span class="p">(</span><span class="n">text</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Normalize text for better matching.</span>
+
+<span class="sd">    :param text: str</span>
+<span class="sd">    :return: str, lowercased and whitespace-normalized</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">text</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s2">&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;\s+&#39;</span><span class="p">,</span> <span class="s1">&#39; &#39;</span><span class="p">,</span> <span class="n">text</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span><span class="o">.</span><span class="n">strip</span><span class="p">())</span></div>
+
+
+
+<div class="viewcode-block" id="calculate_text_similarity">
+<a class="viewcode-back" href="../../Outreach_System_Functions.html#Outreach_System_Functions.company_case_dynamo.calculate_text_similarity">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">calculate_text_similarity</span><span class="p">(</span><span class="n">text1</span><span class="p">,</span> <span class="n">text2</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Calculate similarity between two strings using SequenceMatcher.</span>
+
+<span class="sd">    :param text1: str</span>
+<span class="sd">    :param text2: str</span>
+<span class="sd">    :return: float similarity ratio (0 to 1)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">SequenceMatcher</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="n">normalize_text</span><span class="p">(</span><span class="n">text1</span><span class="p">),</span> <span class="n">normalize_text</span><span class="p">(</span><span class="n">text2</span><span class="p">))</span><span class="o">.</span><span class="n">ratio</span><span class="p">()</span></div>
+
+
+
+<div class="viewcode-block" id="parse_employee_count">
+<a class="viewcode-back" href="../../Outreach_System_Functions.html#Outreach_System_Functions.company_case_dynamo.parse_employee_count">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">parse_employee_count</span><span class="p">(</span><span class="n">size_str</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Convert size strings to numerical employee ranges.</span>
+
+<span class="sd">    :param size_str: str, e.g. &quot;1-10&quot;</span>
+<span class="sd">    :return: tuple (min, max)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">size_mapping</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s2">&quot;1-10&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">10</span><span class="p">),</span>
+        <span class="s2">&quot;11-50&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">11</span><span class="p">,</span> <span class="mi">50</span><span class="p">),</span>
+        <span class="s2">&quot;51-200&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">51</span><span class="p">,</span> <span class="mi">200</span><span class="p">),</span>
+        <span class="s2">&quot;201-500&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">201</span><span class="p">,</span> <span class="mi">500</span><span class="p">),</span>
+        <span class="s2">&quot;501-1000&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">501</span><span class="p">,</span> <span class="mi">1000</span><span class="p">),</span>
+        <span class="s2">&quot;1K-5K&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">1000</span><span class="p">,</span> <span class="mi">5000</span><span class="p">),</span>
+        <span class="s2">&quot;5K-10K&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">5000</span><span class="p">,</span> <span class="mi">10000</span><span class="p">),</span>
+        <span class="s2">&quot;10K+&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">10000</span><span class="p">,</span> <span class="nb">float</span><span class="p">(</span><span class="s1">&#39;inf&#39;</span><span class="p">))</span>
+    <span class="p">}</span>
+    <span class="k">return</span> <span class="n">size_mapping</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">size_str</span><span class="p">,</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">float</span><span class="p">(</span><span class="s1">&#39;inf&#39;</span><span class="p">)))</span></div>
+
+
+
+<div class="viewcode-block" id="map_case_study_size_to_company_size">
+<a class="viewcode-back" href="../../Outreach_System_Functions.html#Outreach_System_Functions.company_case_dynamo.map_case_study_size_to_company_size">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">map_case_study_size_to_company_size</span><span class="p">(</span><span class="n">case_size_indicators</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Map qualitative size indicators to employee count categories.</span>
+
+<span class="sd">    :param case_size_indicators: list or str</span>
+<span class="sd">    :return: list of size categories</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">size_indicators</span> <span class="o">=</span> <span class="n">normalize_text</span><span class="p">(</span><span class="s1">&#39; &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">case_size_indicators</span><span class="p">)</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">case_size_indicators</span><span class="p">,</span> <span class="nb">list</span><span class="p">)</span> <span class="k">else</span> <span class="n">case_size_indicators</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="n">term</span> <span class="ow">in</span> <span class="n">size_indicators</span> <span class="k">for</span> <span class="n">term</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;fortune 500&quot;</span><span class="p">,</span> <span class="s2">&quot;fortune 100&quot;</span><span class="p">,</span> <span class="s2">&quot;global 500&quot;</span><span class="p">]):</span>
+        <span class="k">return</span> <span class="p">[</span><span class="s2">&quot;1K-5K&quot;</span><span class="p">,</span> <span class="s2">&quot;5K-10K&quot;</span><span class="p">,</span> <span class="s2">&quot;10K+&quot;</span><span class="p">]</span>
+    <span class="k">elif</span> <span class="nb">any</span><span class="p">(</span><span class="n">term</span> <span class="ow">in</span> <span class="n">size_indicators</span> <span class="k">for</span> <span class="n">term</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;enterprise&quot;</span><span class="p">,</span> <span class="s2">&quot;large enterprise&quot;</span><span class="p">]):</span>
+        <span class="k">return</span> <span class="p">[</span><span class="s2">&quot;501-1000&quot;</span><span class="p">,</span> <span class="s2">&quot;1K-5K&quot;</span><span class="p">,</span> <span class="s2">&quot;5K-10K&quot;</span><span class="p">,</span> <span class="s2">&quot;10K+&quot;</span><span class="p">]</span>
+    <span class="k">elif</span> <span class="s2">&quot;large&quot;</span> <span class="ow">in</span> <span class="n">size_indicators</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">[</span><span class="s2">&quot;201-500&quot;</span><span class="p">,</span> <span class="s2">&quot;501-1000&quot;</span><span class="p">,</span> <span class="s2">&quot;1K-5K&quot;</span><span class="p">]</span>
+    <span class="k">elif</span> <span class="nb">any</span><span class="p">(</span><span class="n">term</span> <span class="ow">in</span> <span class="n">size_indicators</span> <span class="k">for</span> <span class="n">term</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;mid-size&quot;</span><span class="p">,</span> <span class="s2">&quot;medium&quot;</span><span class="p">,</span> <span class="s2">&quot;mid-market&quot;</span><span class="p">]):</span>
+        <span class="k">return</span> <span class="p">[</span><span class="s2">&quot;51-200&quot;</span><span class="p">,</span> <span class="s2">&quot;201-500&quot;</span><span class="p">]</span>
+    <span class="k">elif</span> <span class="nb">any</span><span class="p">(</span><span class="n">term</span> <span class="ow">in</span> <span class="n">size_indicators</span> <span class="k">for</span> <span class="n">term</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;small&quot;</span><span class="p">,</span> <span class="s2">&quot;startup&quot;</span><span class="p">,</span> <span class="s2">&quot;sme&quot;</span><span class="p">]):</span>
+        <span class="k">return</span> <span class="p">[</span><span class="s2">&quot;1-10&quot;</span><span class="p">,</span> <span class="s2">&quot;11-50&quot;</span><span class="p">]</span>
+    <span class="k">return</span> <span class="p">[</span><span class="s2">&quot;1-10&quot;</span><span class="p">,</span> <span class="s2">&quot;11-50&quot;</span><span class="p">,</span> <span class="s2">&quot;51-200&quot;</span><span class="p">,</span> <span class="s2">&quot;201-500&quot;</span><span class="p">,</span> <span class="s2">&quot;501-1000&quot;</span><span class="p">,</span> <span class="s2">&quot;1K-5K&quot;</span><span class="p">,</span> <span class="s2">&quot;5K-10K&quot;</span><span class="p">,</span> <span class="s2">&quot;10K+&quot;</span><span class="p">]</span></div>
+
+
+
+<div class="viewcode-block" id="calculate_size_relevance">
+<a class="viewcode-back" href="../../Outreach_System_Functions.html#Outreach_System_Functions.company_case_dynamo.calculate_size_relevance">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">calculate_size_relevance</span><span class="p">(</span><span class="n">company_size</span><span class="p">,</span> <span class="n">target_sizes</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Score company size relevance to case study indicators.</span>
+
+<span class="sd">    :param company_size: str, e.g. &quot;51-200&quot;</span>
+<span class="sd">    :param target_sizes: list of str</span>
+<span class="sd">    :return: int score from 0 to 5</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">company_size</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">target_sizes</span><span class="p">:</span>
+        <span class="k">return</span> <span class="mi">0</span>
+    <span class="k">if</span> <span class="n">company_size</span> <span class="ow">in</span> <span class="n">target_sizes</span><span class="p">:</span>
+        <span class="k">return</span> <span class="mi">5</span>
+
+    <span class="n">company_min</span><span class="p">,</span> <span class="n">company_max</span> <span class="o">=</span> <span class="n">parse_employee_count</span><span class="p">(</span><span class="n">company_size</span><span class="p">)</span>
+    <span class="n">best_score</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">for</span> <span class="n">target_size</span> <span class="ow">in</span> <span class="n">target_sizes</span><span class="p">:</span>
+        <span class="n">target_min</span><span class="p">,</span> <span class="n">target_max</span> <span class="o">=</span> <span class="n">parse_employee_count</span><span class="p">(</span><span class="n">target_size</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">company_min</span> <span class="o">&lt;=</span> <span class="n">target_max</span> <span class="ow">and</span> <span class="n">company_max</span> <span class="o">&gt;=</span> <span class="n">target_min</span><span class="p">:</span>
+            <span class="n">best_score</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">best_score</span><span class="p">,</span> <span class="mi">4</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">distance</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="nb">abs</span><span class="p">(</span><span class="n">target_min</span> <span class="o">-</span> <span class="n">company_max</span><span class="p">),</span> <span class="nb">abs</span><span class="p">(</span><span class="n">company_min</span> <span class="o">-</span> <span class="n">target_max</span><span class="p">))</span>
+            <span class="k">if</span> <span class="n">distance</span> <span class="o">&lt;=</span> <span class="mi">50</span><span class="p">:</span>
+                <span class="n">best_score</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">best_score</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">distance</span> <span class="o">&lt;=</span> <span class="mi">200</span><span class="p">:</span>
+                <span class="n">best_score</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">best_score</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">distance</span> <span class="o">&lt;=</span> <span class="mi">1000</span><span class="p">:</span>
+                <span class="n">best_score</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">best_score</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">best_score</span></div>
+
+
+
+<div class="viewcode-block" id="build_industry_map">
+<a class="viewcode-back" href="../../Outreach_System_Functions.html#Outreach_System_Functions.company_case_dynamo.build_industry_map">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">build_industry_map</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Construct a mapping of industry categories to relevant keywords.</span>
+
+<span class="sd">    :return: dict mapping industries to keyword lists</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">industry_map</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s2">&quot;finance&quot;</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s2">&quot;keywords&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;banking&quot;</span><span class="p">,</span> <span class="s2">&quot;investment&quot;</span><span class="p">,</span> <span class="s2">&quot;financial services&quot;</span><span class="p">,</span> <span class="s2">&quot;wealth management&quot;</span><span class="p">,</span>
+                         <span class="s2">&quot;capital markets&quot;</span><span class="p">,</span> <span class="s2">&quot;fintech&quot;</span><span class="p">,</span> <span class="s2">&quot;payments&quot;</span><span class="p">,</span> <span class="s2">&quot;credit&quot;</span><span class="p">,</span> <span class="s2">&quot;lending&quot;</span><span class="p">]</span>
+        <span class="p">},</span>
+        <span class="c1"># Extend as needed...</span>
+    <span class="p">}</span>
+    <span class="k">return</span> <span class="n">industry_map</span></div>
+
+<div class="viewcode-block" id="calculate_industry_relevance">
+<a class="viewcode-back" href="../../Outreach_System_Functions.html#Outreach_System_Functions.company_case_dynamo.calculate_industry_relevance">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">calculate_industry_relevance</span><span class="p">(</span><span class="n">company_industry</span><span class="p">,</span> <span class="n">case_study_industry</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Calculate relevance between a company&#39;s industry and a case study&#39;s industry.</span>
+
+<span class="sd">    :param company_industry: Industry of the company</span>
+<span class="sd">    :type company_industry: str</span>
+<span class="sd">    :param case_study_industry: Industry mentioned in the case study</span>
+<span class="sd">    :type case_study_industry: str</span>
+<span class="sd">    :return: Relevance score between 0 and 5</span>
+<span class="sd">    :rtype: int</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">company_industry</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">case_study_industry</span><span class="p">:</span>
+        <span class="k">return</span> <span class="mi">0</span>
+
+    <span class="n">company_industry</span> <span class="o">=</span> <span class="n">normalize_text</span><span class="p">(</span><span class="n">company_industry</span><span class="p">)</span>
+    <span class="n">case_study_industry</span> <span class="o">=</span> <span class="n">normalize_text</span><span class="p">(</span><span class="n">case_study_industry</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">company_industry</span> <span class="o">==</span> <span class="n">case_study_industry</span><span class="p">:</span>
+        <span class="k">return</span> <span class="mi">5</span>
+
+    <span class="n">industry_map</span> <span class="o">=</span> <span class="n">build_industry_map</span><span class="p">()</span>
+    <span class="n">max_score</span> <span class="o">=</span> <span class="mi">0</span>
+
+    <span class="k">for</span> <span class="n">main_industry</span><span class="p">,</span> <span class="n">mappings</span> <span class="ow">in</span> <span class="n">industry_map</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="n">case_study_match</span> <span class="o">=</span> <span class="nb">any</span><span class="p">(</span><span class="n">keyword</span> <span class="ow">in</span> <span class="n">case_study_industry</span> <span class="k">for</span> <span class="n">keyword</span> <span class="ow">in</span> <span class="p">[</span><span class="n">main_industry</span><span class="p">]</span> <span class="o">+</span> <span class="n">mappings</span><span class="p">[</span><span class="s2">&quot;keywords&quot;</span><span class="p">])</span>
+        <span class="n">company_match</span> <span class="o">=</span> <span class="nb">any</span><span class="p">(</span><span class="n">keyword</span> <span class="ow">in</span> <span class="n">company_industry</span> <span class="k">for</span> <span class="n">keyword</span> <span class="ow">in</span> <span class="p">[</span><span class="n">main_industry</span><span class="p">]</span> <span class="o">+</span> <span class="n">mappings</span><span class="p">[</span><span class="s2">&quot;keywords&quot;</span><span class="p">])</span>
+
+        <span class="k">if</span> <span class="n">case_study_match</span> <span class="ow">and</span> <span class="n">company_match</span><span class="p">:</span>
+            <span class="n">max_score</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">max_score</span><span class="p">,</span> <span class="mi">4</span><span class="p">)</span>
+            <span class="k">break</span>
+
+        <span class="k">if</span> <span class="n">case_study_match</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">company_match</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">related</span> <span class="ow">in</span> <span class="n">mappings</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;related&quot;</span><span class="p">,</span> <span class="p">[]):</span>
+                <span class="k">if</span> <span class="n">related</span> <span class="ow">in</span> <span class="n">company_industry</span><span class="p">:</span>
+                    <span class="n">max_score</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">max_score</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+                    <span class="k">break</span>
+
+    <span class="k">if</span> <span class="n">max_score</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">similarity</span> <span class="o">=</span> <span class="n">calculate_text_similarity</span><span class="p">(</span><span class="n">company_industry</span><span class="p">,</span> <span class="n">case_study_industry</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">similarity</span> <span class="o">&gt;</span> <span class="mf">0.8</span><span class="p">:</span>
+            <span class="n">max_score</span> <span class="o">=</span> <span class="mi">4</span>
+        <span class="k">elif</span> <span class="n">similarity</span> <span class="o">&gt;</span> <span class="mf">0.6</span><span class="p">:</span>
+            <span class="n">max_score</span> <span class="o">=</span> <span class="mi">3</span>
+        <span class="k">elif</span> <span class="n">similarity</span> <span class="o">&gt;</span> <span class="mf">0.4</span><span class="p">:</span>
+            <span class="n">max_score</span> <span class="o">=</span> <span class="mi">2</span>
+        <span class="k">elif</span> <span class="n">similarity</span> <span class="o">&gt;</span> <span class="mf">0.2</span><span class="p">:</span>
+            <span class="n">max_score</span> <span class="o">=</span> <span class="mi">1</span>
+
+    <span class="k">return</span> <span class="n">max_score</span></div>
+
+
+
+<div class="viewcode-block" id="calculate_tech_keywords_relevance">
+<a class="viewcode-back" href="../../Outreach_System_Functions.html#Outreach_System_Functions.company_case_dynamo.calculate_tech_keywords_relevance">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">calculate_tech_keywords_relevance</span><span class="p">(</span><span class="n">company_info</span><span class="p">,</span> <span class="n">case_study_info</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Calculate relevance based on technical keywords and company type.</span>
+
+<span class="sd">    :param company_info: Dictionary containing company information</span>
+<span class="sd">    :type company_info: dict</span>
+<span class="sd">    :param case_study_info: Dictionary containing case study information</span>
+<span class="sd">    :type case_study_info: dict</span>
+<span class="sd">    :return: Tech relevance score, capped at 10</span>
+<span class="sd">    :rtype: int</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">relevance_score</span> <span class="o">=</span> <span class="mi">0</span>
+
+    <span class="n">solution_type_relevance</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s2">&quot;data analytics&quot;</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s2">&quot;Public Company&quot;</span><span class="p">:</span> <span class="mi">5</span><span class="p">,</span> <span class="s2">&quot;Privately Held&quot;</span><span class="p">:</span> <span class="mi">4</span><span class="p">,</span> <span class="s2">&quot;Self-Owned&quot;</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span> <span class="s2">&quot;Partnership&quot;</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span> <span class="s2">&quot;Government Agency&quot;</span><span class="p">:</span> <span class="mi">4</span>
+        <span class="p">},</span>
+        <span class="s2">&quot;cloud migration&quot;</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s2">&quot;Public Company&quot;</span><span class="p">:</span> <span class="mi">5</span><span class="p">,</span> <span class="s2">&quot;Privately Held&quot;</span><span class="p">:</span> <span class="mi">4</span><span class="p">,</span> <span class="s2">&quot;Self-Owned&quot;</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span> <span class="s2">&quot;Partnership&quot;</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span> <span class="s2">&quot;Government Agency&quot;</span><span class="p">:</span> <span class="mi">3</span>
+        <span class="p">},</span>
+        <span class="s2">&quot;digital transformation&quot;</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s2">&quot;Public Company&quot;</span><span class="p">:</span> <span class="mi">5</span><span class="p">,</span> <span class="s2">&quot;Privately Held&quot;</span><span class="p">:</span> <span class="mi">4</span><span class="p">,</span> <span class="s2">&quot;Self-Owned&quot;</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span> <span class="s2">&quot;Partnership&quot;</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span> <span class="s2">&quot;Government Agency&quot;</span><span class="p">:</span> <span class="mi">4</span>
+        <span class="p">},</span>
+        <span class="s2">&quot;ai&quot;</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s2">&quot;Public Company&quot;</span><span class="p">:</span> <span class="mi">5</span><span class="p">,</span> <span class="s2">&quot;Privately Held&quot;</span><span class="p">:</span> <span class="mi">4</span><span class="p">,</span> <span class="s2">&quot;Self-Owned&quot;</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span> <span class="s2">&quot;Partnership&quot;</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span> <span class="s2">&quot;Government Agency&quot;</span><span class="p">:</span> <span class="mi">3</span>
+        <span class="p">},</span>
+        <span class="s2">&quot;automation&quot;</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s2">&quot;Public Company&quot;</span><span class="p">:</span> <span class="mi">4</span><span class="p">,</span> <span class="s2">&quot;Privately Held&quot;</span><span class="p">:</span> <span class="mi">5</span><span class="p">,</span> <span class="s2">&quot;Self-Owned&quot;</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span> <span class="s2">&quot;Partnership&quot;</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span> <span class="s2">&quot;Government Agency&quot;</span><span class="p">:</span> <span class="mi">4</span>
+        <span class="p">},</span>
+        <span class="s2">&quot;cyber security&quot;</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s2">&quot;Public Company&quot;</span><span class="p">:</span> <span class="mi">5</span><span class="p">,</span> <span class="s2">&quot;Privately Held&quot;</span><span class="p">:</span> <span class="mi">4</span><span class="p">,</span> <span class="s2">&quot;Self-Owned&quot;</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span> <span class="s2">&quot;Partnership&quot;</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span> <span class="s2">&quot;Government Agency&quot;</span><span class="p">:</span> <span class="mi">5</span>
+        <span class="p">},</span>
+        <span class="s2">&quot;modernization&quot;</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s2">&quot;Public Company&quot;</span><span class="p">:</span> <span class="mi">5</span><span class="p">,</span> <span class="s2">&quot;Privately Held&quot;</span><span class="p">:</span> <span class="mi">4</span><span class="p">,</span> <span class="s2">&quot;Self-Owned&quot;</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span> <span class="s2">&quot;Partnership&quot;</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span> <span class="s2">&quot;Government Agency&quot;</span><span class="p">:</span> <span class="mi">5</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+
+    <span class="n">company_type</span> <span class="o">=</span> <span class="n">company_info</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;type&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">keyword</span> <span class="ow">in</span> <span class="n">case_study_info</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;tech_keywords&quot;</span><span class="p">,</span> <span class="p">[]):</span>
+        <span class="n">keyword_lower</span> <span class="o">=</span> <span class="n">normalize_text</span><span class="p">(</span><span class="n">keyword</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">solution_key</span><span class="p">,</span> <span class="n">type_scores</span> <span class="ow">in</span> <span class="n">solution_type_relevance</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">solution_key</span> <span class="ow">in</span> <span class="n">keyword_lower</span><span class="p">:</span>
+                <span class="n">relevance_score</span> <span class="o">+=</span> <span class="n">type_scores</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">company_type</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+                <span class="k">break</span>
+
+    <span class="k">return</span> <span class="nb">min</span><span class="p">(</span><span class="n">relevance_score</span><span class="p">,</span> <span class="mi">10</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="calculate_location_relevance">
+<a class="viewcode-back" href="../../Outreach_System_Functions.html#Outreach_System_Functions.company_case_dynamo.calculate_location_relevance">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">calculate_location_relevance</span><span class="p">(</span><span class="n">company_location</span><span class="p">,</span> <span class="n">case_study_location</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Calculate location relevance based on country or region proximity.</span>
+
+<span class="sd">    :param company_location: Location of the company</span>
+<span class="sd">    :type company_location: str</span>
+<span class="sd">    :param case_study_location: Location from the case study</span>
+<span class="sd">    :type case_study_location: str</span>
+<span class="sd">    :return: Location relevance score (0-3)</span>
+<span class="sd">    :rtype: int</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">company_location</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">case_study_location</span><span class="p">:</span>
+        <span class="k">return</span> <span class="mi">0</span>
+
+    <span class="n">company_location</span> <span class="o">=</span> <span class="n">normalize_text</span><span class="p">(</span><span class="n">company_location</span><span class="p">)</span>
+    <span class="n">case_study_location</span> <span class="o">=</span> <span class="n">normalize_text</span><span class="p">(</span><span class="n">case_study_location</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">company_location</span> <span class="o">==</span> <span class="n">case_study_location</span><span class="p">:</span>
+        <span class="k">return</span> <span class="mi">3</span>
+
+    <span class="n">regions</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s2">&quot;north america&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;usa&quot;</span><span class="p">,</span> <span class="s2">&quot;united states&quot;</span><span class="p">,</span> <span class="s2">&quot;us&quot;</span><span class="p">,</span> <span class="s2">&quot;canada&quot;</span><span class="p">,</span> <span class="s2">&quot;mexico&quot;</span><span class="p">],</span>
+        <span class="s2">&quot;europe&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;uk&quot;</span><span class="p">,</span> <span class="s2">&quot;united kingdom&quot;</span><span class="p">,</span> <span class="s2">&quot;germany&quot;</span><span class="p">,</span> <span class="s2">&quot;france&quot;</span><span class="p">,</span> <span class="s2">&quot;italy&quot;</span><span class="p">,</span> <span class="s2">&quot;spain&quot;</span><span class="p">,</span> <span class="s2">&quot;netherlands&quot;</span><span class="p">],</span>
+        <span class="s2">&quot;asia pacific&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;china&quot;</span><span class="p">,</span> <span class="s2">&quot;japan&quot;</span><span class="p">,</span> <span class="s2">&quot;australia&quot;</span><span class="p">,</span> <span class="s2">&quot;india&quot;</span><span class="p">,</span> <span class="s2">&quot;singapore&quot;</span><span class="p">,</span> <span class="s2">&quot;hong kong&quot;</span><span class="p">],</span>
+        <span class="s2">&quot;latin america&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;brazil&quot;</span><span class="p">,</span> <span class="s2">&quot;argentina&quot;</span><span class="p">,</span> <span class="s2">&quot;chile&quot;</span><span class="p">,</span> <span class="s2">&quot;colombia&quot;</span><span class="p">,</span> <span class="s2">&quot;peru&quot;</span><span class="p">],</span>
+        <span class="s2">&quot;middle east&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;uae&quot;</span><span class="p">,</span> <span class="s2">&quot;dubai&quot;</span><span class="p">,</span> <span class="s2">&quot;saudi arabia&quot;</span><span class="p">,</span> <span class="s2">&quot;israel&quot;</span><span class="p">,</span> <span class="s2">&quot;qatar&quot;</span><span class="p">,</span> <span class="s2">&quot;oman&quot;</span><span class="p">]</span>
+    <span class="p">}</span>
+
+    <span class="k">for</span> <span class="n">region</span><span class="p">,</span> <span class="n">countries</span> <span class="ow">in</span> <span class="n">regions</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="n">company_in_region</span> <span class="o">=</span> <span class="n">region</span> <span class="ow">in</span> <span class="n">company_location</span> <span class="ow">or</span> <span class="nb">any</span><span class="p">(</span><span class="n">country</span> <span class="ow">in</span> <span class="n">company_location</span> <span class="k">for</span> <span class="n">country</span> <span class="ow">in</span> <span class="n">countries</span><span class="p">)</span>
+        <span class="n">case_in_region</span> <span class="o">=</span> <span class="n">region</span> <span class="ow">in</span> <span class="n">case_study_location</span> <span class="ow">or</span> <span class="nb">any</span><span class="p">(</span><span class="n">country</span> <span class="ow">in</span> <span class="n">case_study_location</span> <span class="k">for</span> <span class="n">country</span> <span class="ow">in</span> <span class="n">countries</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">company_in_region</span> <span class="ow">and</span> <span class="n">case_in_region</span><span class="p">:</span>
+            <span class="k">return</span> <span class="mi">2</span>
+
+    <span class="k">return</span> <span class="mi">0</span></div>
+
+
+
+<div class="viewcode-block" id="calculate_solution_relevance">
+<a class="viewcode-back" href="../../Outreach_System_Functions.html#Outreach_System_Functions.company_case_dynamo.calculate_solution_relevance">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">calculate_solution_relevance</span><span class="p">(</span><span class="n">company_info</span><span class="p">,</span> <span class="n">case_study_info</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Calculate a comprehensive solution relevance score using multiple factors.</span>
+
+<span class="sd">    :param company_info: Dictionary containing company details</span>
+<span class="sd">    :type company_info: dict</span>
+<span class="sd">    :param case_study_info: Dictionary containing case study details</span>
+<span class="sd">    :type case_study_info: dict</span>
+<span class="sd">    :return: Dictionary with total score and component scores</span>
+<span class="sd">    :rtype: dict</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">company_info</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">case_study_info</span><span class="p">:</span>
+        <span class="k">return</span> <span class="mi">0</span>
+
+    <span class="n">scores</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">weights</span> <span class="o">=</span> <span class="p">{}</span>
+
+    <span class="n">weights</span><span class="p">[</span><span class="s2">&quot;industry&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">5</span>
+    <span class="n">scores</span><span class="p">[</span><span class="s2">&quot;industry&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">calculate_industry_relevance</span><span class="p">(</span>
+        <span class="n">company_info</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;industry&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">),</span>
+        <span class="n">case_study_info</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;industry&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
+    <span class="p">)</span>
+
+    <span class="n">weights</span><span class="p">[</span><span class="s2">&quot;size&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">4</span>
+    <span class="n">scores</span><span class="p">[</span><span class="s2">&quot;size&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">calculate_size_relevance</span><span class="p">(</span>
+        <span class="n">company_info</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;size&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">),</span>
+        <span class="n">map_case_study_size_to_company_size</span><span class="p">(</span><span class="n">case_study_info</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;company_size&quot;</span><span class="p">,</span> <span class="p">[]))</span>
+    <span class="p">)</span>
+
+    <span class="n">weights</span><span class="p">[</span><span class="s2">&quot;tech&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">3</span>
+    <span class="n">scores</span><span class="p">[</span><span class="s2">&quot;tech&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">calculate_tech_keywords_relevance</span><span class="p">(</span><span class="n">company_info</span><span class="p">,</span> <span class="n">case_study_info</span><span class="p">)</span>
+
+    <span class="n">weights</span><span class="p">[</span><span class="s2">&quot;location&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">2</span>
+    <span class="n">scores</span><span class="p">[</span><span class="s2">&quot;location&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">calculate_location_relevance</span><span class="p">(</span>
+        <span class="n">company_info</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;country&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">),</span>
+        <span class="n">case_study_info</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;location&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
+    <span class="p">)</span>
+
+    <span class="n">total_weight</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">weights</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
+    <span class="n">weighted_score</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">scores</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">*</span> <span class="n">weights</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">scores</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+    <span class="n">max_possible_score</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="mi">5</span> <span class="o">*</span> <span class="n">weights</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">weights</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+    <span class="n">normalized_score</span> <span class="o">=</span> <span class="p">(</span><span class="n">weighted_score</span> <span class="o">/</span> <span class="n">max_possible_score</span><span class="p">)</span> <span class="o">*</span> <span class="mi">100</span>
+
+    <span class="n">detailed_scores</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s2">&quot;total_score&quot;</span><span class="p">:</span> <span class="nb">round</span><span class="p">(</span><span class="n">normalized_score</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span>
+        <span class="s2">&quot;industry_score&quot;</span><span class="p">:</span> <span class="n">scores</span><span class="p">[</span><span class="s2">&quot;industry&quot;</span><span class="p">],</span>
+        <span class="s2">&quot;size_score&quot;</span><span class="p">:</span> <span class="n">scores</span><span class="p">[</span><span class="s2">&quot;size&quot;</span><span class="p">],</span>
+        <span class="s2">&quot;tech_score&quot;</span><span class="p">:</span> <span class="n">scores</span><span class="p">[</span><span class="s2">&quot;tech&quot;</span><span class="p">],</span>
+        <span class="s2">&quot;location_score&quot;</span><span class="p">:</span> <span class="n">scores</span><span class="p">[</span><span class="s2">&quot;location&quot;</span><span class="p">]</span>
+    <span class="p">}</span>
+
+    <span class="k">return</span> <span class="n">detailed_scores</span></div>
+
+<span class="c1"># def filter_and_rank_companies(df, case_study_info, min_score=30):</span>
+<span class="c1">#     &quot;&quot;&quot;Filter and rank companies with improved scoring and detailed results&quot;&quot;&quot;</span>
+<span class="c1">#     if df.empty or not case_study_info:</span>
+<span class="c1">#         return pd.DataFrame()</span>
+        
+<span class="c1">#     # Create lists to store results</span>
+<span class="c1">#     all_scores = []</span>
+<span class="c1">#     detailed_scores = []</span>
+    
+<span class="c1">#     # Calculate relevance score for each company</span>
+<span class="c1">#     for index, company in df.iterrows():</span>
+<span class="c1">#         company_info = company.to_dict()</span>
+<span class="c1">#         score_details = calculate_solution_relevance(company_info, case_study_info)</span>
+        
+<span class="c1">#         total_score = score_details[&quot;total_score&quot;]</span>
+<span class="c1">#         if total_score &gt;= min_score:  # Only include companies above threshold</span>
+<span class="c1">#             all_scores.append((index, total_score))</span>
+<span class="c1">#             detailed_scores.append((index, score_details))</span>
+    
+<span class="c1">#     # Sort companies by total relevance score (descending)</span>
+<span class="c1">#     all_scores.sort(key=lambda x: x[1], reverse=True)</span>
+    
+<span class="c1">#     # Get the top companies</span>
+<span class="c1">#     if all_scores:</span>
+<span class="c1">#         top_indices = [score[0] for score in all_scores]</span>
+<span class="c1">#         matching_companies = df.loc[top_indices].copy()</span>
+        
+<span class="c1">#         # Add detailed scores to the dataframe</span>
+<span class="c1">#         for score_detail in detailed_scores:</span>
+<span class="c1">#             idx = score_detail[0]</span>
+<span class="c1">#             details = score_detail[1]</span>
+            
+<span class="c1">#             for key, value in details.items():</span>
+<span class="c1">#                 matching_companies.loc[idx, key] = value</span>
+        
+<span class="c1">#         # Sort by total score</span>
+<span class="c1">#         matching_companies = matching_companies.sort_values(&#39;total_score&#39;, ascending=False)</span>
+        
+<span class="c1">#         return matching_companies</span>
+    
+<span class="c1">#     return pd.DataFrame()  # Return empty dataframe if no matches</span>
+
+
+<div class="viewcode-block" id="filter_companies_from_dynamodb">
+<a class="viewcode-back" href="../../Outreach_System_Functions.html#Outreach_System_Functions.company_case_dynamo.filter_companies_from_dynamodb">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">filter_companies_from_dynamodb</span><span class="p">(</span><span class="n">table</span><span class="p">,</span> <span class="n">case_study_info</span><span class="p">,</span> <span class="n">min_score</span><span class="o">=</span><span class="mi">30</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Query and filter companies from a DynamoDB table based on a case study and relevance scoring.</span>
+
+<span class="sd">    This function scans a DynamoDB table to retrieve company profiles and filters them</span>
+<span class="sd">    based on their relevance to the provided case study using multiple dimensions </span>
+<span class="sd">    (industry, size, tech, and location). Relevance is computed using a composite score.</span>
+<span class="sd">    Optionally applies an initial filter on industry before falling back to a full table scan.</span>
+
+<span class="sd">    :param table: DynamoDB table resource (boto3 Table)</span>
+<span class="sd">    :type table: boto3.resources.factory.dynamodb.Table</span>
+<span class="sd">    :param case_study_info: Information about the case study used for scoring relevance</span>
+<span class="sd">    :type case_study_info: dict</span>
+<span class="sd">    :param min_score: Minimum total relevance score for a company to be included</span>
+<span class="sd">    :type min_score: int</span>
+<span class="sd">    :return: List of company dicts with total and individual relevance scores, sorted by total score</span>
+<span class="sd">    :rtype: list[dict]</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">matching_companies</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="c1"># Build filter expression for initial filtering if possible</span>
+    <span class="n">filter_expressions</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="c1"># Try to filter by industry first using FilterExpression</span>
+    <span class="k">if</span> <span class="n">case_study_info</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;industry&quot;</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="c1"># First try an exact industry match</span>
+            <span class="n">response</span> <span class="o">=</span> <span class="n">table</span><span class="o">.</span><span class="n">scan</span><span class="p">(</span>
+                <span class="n">FilterExpression</span><span class="o">=</span><span class="n">Attr</span><span class="p">(</span><span class="s2">&quot;industry&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">eq</span><span class="p">(</span><span class="n">case_study_info</span><span class="p">[</span><span class="s2">&quot;industry&quot;</span><span class="p">])</span>
+            <span class="p">)</span>
+            <span class="n">items</span> <span class="o">=</span> <span class="n">response</span><span class="p">[</span><span class="s2">&quot;Items&quot;</span><span class="p">]</span>
+
+            <span class="c1"># Add paginated results</span>
+            <span class="k">while</span> <span class="s2">&quot;LastEvaluatedKey&quot;</span> <span class="ow">in</span> <span class="n">response</span><span class="p">:</span>
+                <span class="n">response</span> <span class="o">=</span> <span class="n">table</span><span class="o">.</span><span class="n">scan</span><span class="p">(</span>
+                    <span class="n">FilterExpression</span><span class="o">=</span><span class="n">Attr</span><span class="p">(</span><span class="s2">&quot;industry&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">eq</span><span class="p">(</span><span class="n">case_study_info</span><span class="p">[</span><span class="s2">&quot;industry&quot;</span><span class="p">]),</span>
+                    <span class="n">ExclusiveStartKey</span><span class="o">=</span><span class="n">response</span><span class="p">[</span><span class="s2">&quot;LastEvaluatedKey&quot;</span><span class="p">]</span>
+                <span class="p">)</span>
+                <span class="n">items</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">response</span><span class="p">[</span><span class="s2">&quot;Items&quot;</span><span class="p">])</span>
+
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">items</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">10</span><span class="p">:</span>
+                <span class="n">do_broader_scan</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">do_broader_scan</span> <span class="o">=</span> <span class="kc">False</span>
+
+        <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+            <span class="n">do_broader_scan</span> <span class="o">=</span> <span class="kc">True</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">do_broader_scan</span> <span class="o">=</span> <span class="kc">True</span>
+
+    <span class="k">if</span> <span class="n">do_broader_scan</span><span class="p">:</span>
+        <span class="c1"># Scan entire table with pagination</span>
+        <span class="n">items</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">response</span> <span class="o">=</span> <span class="n">table</span><span class="o">.</span><span class="n">scan</span><span class="p">()</span>
+        <span class="n">items</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">response</span><span class="p">[</span><span class="s2">&quot;Items&quot;</span><span class="p">])</span>
+
+        <span class="k">while</span> <span class="s2">&quot;LastEvaluatedKey&quot;</span> <span class="ow">in</span> <span class="n">response</span><span class="p">:</span>
+            <span class="n">response</span> <span class="o">=</span> <span class="n">table</span><span class="o">.</span><span class="n">scan</span><span class="p">(</span><span class="n">ExclusiveStartKey</span><span class="o">=</span><span class="n">response</span><span class="p">[</span><span class="s2">&quot;LastEvaluatedKey&quot;</span><span class="p">])</span>
+            <span class="n">items</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">response</span><span class="p">[</span><span class="s2">&quot;Items&quot;</span><span class="p">])</span>
+
+    <span class="c1"># Process and score each item</span>
+    <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">items</span><span class="p">:</span>
+        <span class="n">score_details</span> <span class="o">=</span> <span class="n">calculate_solution_relevance</span><span class="p">(</span><span class="n">item</span><span class="p">,</span> <span class="n">case_study_info</span><span class="p">)</span>
+        <span class="n">total_score</span> <span class="o">=</span> <span class="n">score_details</span><span class="p">[</span><span class="s2">&quot;total_score&quot;</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="n">total_score</span> <span class="o">&gt;=</span> <span class="n">min_score</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">score_details</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="n">item</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
+            <span class="n">matching_companies</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">item</span><span class="p">)</span>
+
+    <span class="n">matching_companies</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">[</span><span class="s2">&quot;total_score&quot;</span><span class="p">],</span> <span class="n">reverse</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">matching_companies</span></div>
+
+
+<div class="viewcode-block" id="select_target_companies">
+<a class="viewcode-back" href="../../Outreach_System_Functions.html#Outreach_System_Functions.company_case_dynamo.select_target_companies">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">select_target_companies</span><span class="p">(</span><span class="n">matching_companies</span><span class="p">,</span> <span class="n">min_score</span><span class="o">=</span><span class="mi">40</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Select and return companies that exceed a specified score threshold.</span>
+
+<span class="sd">    This function filters out companies from a list of matching candidates based</span>
+<span class="sd">    on a higher score threshold for use in targeted actions (e.g., outreach, partnership).</span>
+<span class="sd">    Falls back to returning all matching companies if none meet the minimum threshold.</span>
+
+<span class="sd">    :param matching_companies: List of companies with scored relevance</span>
+<span class="sd">    :type matching_companies: list[dict]</span>
+<span class="sd">    :param min_score: Minimum score threshold for inclusion in final selection</span>
+<span class="sd">    :type min_score: int</span>
+<span class="sd">    :return: Filtered list of companies with scores &gt;= min_score</span>
+<span class="sd">    :rtype: list[dict]</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">matching_companies</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">[]</span>
+
+    <span class="n">qualified_companies</span> <span class="o">=</span> <span class="p">[</span><span class="n">company</span> <span class="k">for</span> <span class="n">company</span> <span class="ow">in</span> <span class="n">matching_companies</span> <span class="k">if</span> <span class="n">company</span><span class="p">[</span><span class="s2">&quot;total_score&quot;</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="n">min_score</span><span class="p">]</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">qualified_companies</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">matching_companies</span>
+
+    <span class="k">return</span> <span class="n">qualified_companies</span></div>
+
+
+<span class="c1"># def select_target_companies(matching_companies, min_score=40): </span>
+<span class="c1">#     &quot;&quot;&quot;Select target companies with minimum score threshold (no result limit)&quot;&quot;&quot;</span>
+<span class="c1">#     if matching_companies.empty:</span>
+<span class="c1">#         return None</span>
+
+<span class="c1">#     # Filter by minimum score</span>
+<span class="c1">#     qualified_companies = matching_companies[matching_companies[&#39;total_score&#39;] &gt;= min_score]</span>
+
+<span class="c1">#     if qualified_companies.empty:</span>
+<span class="c1">#         # Fall back to original companies if none meet threshold</span>
+<span class="c1">#         return matching_companies</span>
+
+<span class="c1">#     # Return all qualified companies (no .head())</span>
+<span class="c1">#     return qualified_companies</span>
+<span class="c1">#&quot;main&quot; function that calls all the other functions </span>
+<div class="viewcode-block" id="process_case_study">
+<a class="viewcode-back" href="../../Outreach_System_Functions.html#Outreach_System_Functions.company_case_dynamo.process_case_study">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">process_case_study</span><span class="p">(</span><span class="n">case_study_text</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Process a case study text, retrieve and filter relevant companies, </span>
+<span class="sd">    and find a target company with available about information.</span>
+
+<span class="sd">    This function extracts information from a case study, queries DynamoDB for </span>
+<span class="sd">    matching companies, and processes each company to find one with retrievable </span>
+<span class="sd">    information about the company. The results are logged, and the details of </span>
+<span class="sd">    the selected company are returned.</span>
+
+<span class="sd">    :param case_study_text: The text of the case study to process</span>
+<span class="sd">    :type case_study_text: str</span>
+<span class="sd">    :return: A tuple containing:</span>
+<span class="sd">        - A list of strings representing the logged output during the processing</span>
+<span class="sd">        - A list of company details (name, industry, size, country, website)</span>
+<span class="sd">    :rtype: tuple[list[str], list[str]]</span>
+<span class="sd">    :raises Exception: If an error occurs during processing (e.g., network failure, DynamoDB issue)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">results_log</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="c1"># Extract case study information</span>
+    <span class="n">case_study_info</span> <span class="o">=</span> <span class="n">extract_case_study_info</span><span class="p">(</span><span class="n">case_study_text</span><span class="p">)</span>
+    <span class="n">results_log</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Case Study Information:&quot;</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">case_study_info</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="n">line</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">value</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="n">results_log</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
+    
+    <span class="k">try</span><span class="p">:</span>
+        <span class="c1"># Initialize DynamoDB connection</span>
+        <span class="n">dynamodb</span> <span class="o">=</span> <span class="n">boto3</span><span class="o">.</span><span class="n">resource</span><span class="p">(</span><span class="s1">&#39;dynamodb&#39;</span><span class="p">,</span> <span class="n">region_name</span><span class="o">=</span><span class="s1">&#39;eu-central-1&#39;</span><span class="p">)</span>  
+        <span class="n">table</span> <span class="o">=</span> <span class="n">dynamodb</span><span class="o">.</span><span class="n">Table</span><span class="p">(</span><span class="s1">&#39;Targeted_companies&#39;</span><span class="p">)</span>  <span class="c1"># DynamoDB table name</span>
+        
+        <span class="c1"># Query and filter companies directly from DynamoDB</span>
+        <span class="n">matching_companies</span> <span class="o">=</span> <span class="n">filter_companies_from_dynamodb</span><span class="p">(</span><span class="n">table</span><span class="p">,</span> <span class="n">case_study_info</span><span class="p">)</span>
+        <span class="n">msg</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Found </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">matching_companies</span><span class="p">)</span><span class="si">}</span><span class="s2"> matching companies from DynamoDB&quot;</span>
+        <span class="n">results_log</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">matching_companies</span><span class="p">:</span>
+            <span class="n">msg</span> <span class="o">=</span> <span class="s2">&quot;No suitable companies found.&quot;</span>
+            <span class="n">results_log</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">results_log</span>
+
+        <span class="c1"># Select the target companies</span>
+        <span class="n">target_companies</span> <span class="o">=</span> <span class="n">select_target_companies</span><span class="p">(</span><span class="n">matching_companies</span><span class="p">)</span>
+        <span class="n">selected_company</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">selected_company_info</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="n">msg</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Searching for target company with available about information...&quot;</span>
+        <span class="n">results_log</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+
+        <span class="n">top_n</span> <span class="o">=</span> <span class="mi">50</span>
+        <span class="c1"># Using slicing for list instead of DataFrame&#39;s head() method</span>
+        <span class="n">top_target_companies</span> <span class="o">=</span> <span class="n">target_companies</span><span class="p">[:</span><span class="n">top_n</span><span class="p">]</span>
+
+        <span class="n">msg</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Top </span><span class="si">{</span><span class="n">top_n</span><span class="si">}</span><span class="s2"> Target Companies:&quot;</span>
+        <span class="n">results_log</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+
+        <span class="c1"># Create a table-like display for the top companies</span>
+        <span class="n">table_display</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">header</span> <span class="o">=</span> <span class="s2">&quot;| Name | Industry | Size | Country | Website | Total Score |&quot;</span>
+        <span class="n">separator</span> <span class="o">=</span> <span class="s2">&quot;|------|----------|------|---------|---------|-------------|&quot;</span>
+        <span class="n">table_display</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">header</span><span class="p">)</span>
+        <span class="n">table_display</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">separator</span><span class="p">)</span>
+        
+        <span class="k">for</span> <span class="n">company</span> <span class="ow">in</span> <span class="n">top_target_companies</span><span class="p">:</span>
+            <span class="n">row</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;| </span><span class="si">{</span><span class="n">company</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;name&#39;</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;N/A&#39;</span><span class="p">)</span><span class="si">}</span><span class="s2"> | </span><span class="si">{</span><span class="n">company</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;industry&#39;</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;N/A&#39;</span><span class="p">)</span><span class="si">}</span><span class="s2"> | </span><span class="si">{</span><span class="n">company</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;size&#39;</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;N/A&#39;</span><span class="p">)</span><span class="si">}</span><span class="s2"> | </span><span class="si">{</span><span class="n">company</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;country&#39;</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;N/A&#39;</span><span class="p">)</span><span class="si">}</span><span class="s2"> | </span><span class="si">{</span><span class="n">company</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;website&#39;</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;N/A&#39;</span><span class="p">)</span><span class="si">}</span><span class="s2"> | </span><span class="si">{</span><span class="n">company</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;total_score&#39;</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="si">}</span><span class="s2"> |&quot;</span>
+            <span class="n">table_display</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">row</span><span class="p">)</span>
+        
+        <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">table_display</span><span class="p">:</span>
+            <span class="n">results_log</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">row</span><span class="p">)</span>
+
+        <span class="c1"># Iterating through a list of dictionaries instead of DataFrame rows</span>
+        <span class="n">options</span> <span class="o">=</span> <span class="n">top_target_companies</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">target_companies</span><span class="p">)):</span>
+            <span class="n">random_number</span> <span class="o">=</span> <span class="n">random</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">options</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+            <span class="n">company</span> <span class="o">=</span> <span class="n">options</span><span class="p">[</span><span class="n">random_number</span><span class="p">]</span>
+
+            <span class="n">msg</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Processing </span><span class="si">{</span><span class="n">company</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;name&#39;</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;&#39;</span><span class="p">)</span><span class="si">}</span><span class="s2"> (Record #</span><span class="si">{</span><span class="n">random_number</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="si">}</span><span class="s2">)...&quot;</span>
+            <span class="n">results_log</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+
+            <span class="n">company_info</span> <span class="o">=</span> <span class="n">scrape_company_website</span><span class="p">(</span><span class="n">company</span><span class="p">)</span>
+            <span class="n">about_info</span> <span class="o">=</span> <span class="n">company_info</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;about_info&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="p">(</span><span class="n">about_info</span> <span class="ow">and</span> 
+                <span class="n">about_info</span> <span class="o">!=</span> <span class="s2">&quot;No about information found&quot;</span> <span class="ow">and</span> 
+                <span class="ow">not</span> <span class="n">about_info</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;Error scraping website:&quot;</span><span class="p">)</span> <span class="ow">and</span>
+                <span class="ow">not</span> <span class="n">about_info</span> <span class="o">==</span> <span class="s2">&quot;No website available&quot;</span><span class="p">):</span>
+
+                <span class="n">selected_company</span> <span class="o">=</span> <span class="n">company</span>
+                <span class="n">selected_company_info</span> <span class="o">=</span> <span class="n">company_info</span>
+
+                <span class="n">msg</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;✓ Successfully found about information in English for </span><span class="si">{</span><span class="n">company</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;name&#39;</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;&#39;</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span>
+                <span class="n">results_log</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+                <span class="k">break</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">msg</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;✗ Could not retrieve valid English about information for </span><span class="si">{</span><span class="n">company</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;name&#39;</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;&#39;</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span>
+                <span class="n">results_log</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+                <span class="n">options</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">random_number</span><span class="p">)</span> 
+
+        <span class="c1"># Prepare the results for the selected company</span>
+        <span class="n">company_details</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="k">if</span> <span class="n">selected_company</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">results_log</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">+</span> <span class="s2">&quot;=&quot;</span> <span class="o">*</span> <span class="mi">50</span><span class="p">)</span>
+            <span class="n">results_log</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;FINAL SELECTED COMPANY: </span><span class="si">{</span><span class="n">selected_company</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;name&#39;</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;&#39;</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">results_log</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;=&quot;</span> <span class="o">*</span> <span class="mi">50</span><span class="p">)</span>
+            <span class="n">results_log</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Selected Company Name: </span><span class="si">{</span><span class="n">selected_company</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;name&#39;</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;&#39;</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">results_log</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Industry: </span><span class="si">{</span><span class="n">selected_company</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;industry&#39;</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;N/A&#39;</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">results_log</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Size: </span><span class="si">{</span><span class="n">selected_company</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;size&#39;</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;N/A&#39;</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">results_log</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Country: </span><span class="si">{</span><span class="n">selected_company</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;country&#39;</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;N/A&#39;</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">results_log</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Website: </span><span class="si">{</span><span class="n">selected_company_info</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;website&#39;</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;N/A&#39;</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">results_log</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Relevance Score: </span><span class="si">{</span><span class="n">selected_company</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;total_score&#39;</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">results_log</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">About Information:&quot;</span><span class="p">)</span>
+            <span class="n">results_log</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">selected_company_info</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;about_info&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">))</span>
+
+            <span class="n">company_details</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Name: </span><span class="si">{</span><span class="n">selected_company</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;name&#39;</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;&#39;</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">company_details</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Industry: </span><span class="si">{</span><span class="n">selected_company</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;industry&#39;</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;&#39;</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">company_details</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Size: </span><span class="si">{</span><span class="n">selected_company</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;size&#39;</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;&#39;</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">company_details</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Country: </span><span class="si">{</span><span class="n">selected_company</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;country&#39;</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;&#39;</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">company_details</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Website: </span><span class="si">{</span><span class="n">selected_company</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;website&#39;</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;&#39;</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            
+            <span class="k">return</span> <span class="n">results_log</span><span class="p">,</span> <span class="n">company_details</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">msg</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">None of the top companies had retrievable about information.&quot;</span>
+            <span class="n">results_log</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">results_log</span>
+
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="n">error_msg</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;Error: </span><span class="si">{</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="n">results_log</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">error_msg</span><span class="p">)</span>
+        <span class="kn">import</span><span class="w"> </span><span class="nn">traceback</span>
+        <span class="n">traceback_msg</span> <span class="o">=</span> <span class="n">traceback</span><span class="o">.</span><span class="n">format_exc</span><span class="p">()</span>
+        <span class="n">results_log</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">traceback_msg</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">results_log</span></div>
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="n">company_match_info</span> <span class="o">=</span> <span class="n">process_case_study</span><span class="p">()</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Mohammed Wajaahath.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

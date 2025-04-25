@@ -1,0 +1,499 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Outreach_System_Functions.data_function_doc &mdash; outreach_project v1.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../_static/documentation_options.js?v=e160b93e"></script>
+      <script src="../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            outreach_project
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../Outreach_System_Functions.html">Outreach_System_Functions package</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">outreach_project</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">Outreach_System_Functions.data_function_doc</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for Outreach_System_Functions.data_function_doc</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">io</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">json</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">boto3</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">re</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">opensearchpy</span><span class="w"> </span><span class="kn">import</span> <span class="n">OpenSearch</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">docx</span><span class="w"> </span><span class="kn">import</span> <span class="n">Document</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">langchain_community.embeddings</span><span class="w"> </span><span class="kn">import</span> <span class="n">BedrockEmbeddings</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">urllib3</span>
+<span class="n">urllib3</span><span class="o">.</span><span class="n">disable_warnings</span><span class="p">(</span><span class="n">urllib3</span><span class="o">.</span><span class="n">exceptions</span><span class="o">.</span><span class="n">InsecureRequestWarning</span><span class="p">)</span>
+
+<span class="c1"># === Global Config ===</span>
+<span class="n">s3_bucket</span> <span class="o">=</span> <span class="s2">&quot;project-outreach-system&quot;</span>
+<span class="n">s3_prefix</span> <span class="o">=</span> <span class="s2">&quot;Project Case Study Outreach System/Data/Case Studies/&quot;</span>
+<span class="n">index_name</span> <span class="o">=</span> <span class="s2">&quot;consulting-case-studies&quot;</span>
+<span class="n">host</span> <span class="o">=</span> <span class="s2">&quot;https://search-academy-opensearch-02-qmvenlkzl2x7gaqcxhrq3onsdy.aos.eu-central-1.on.aws&quot;</span>
+<span class="n">username</span> <span class="o">=</span> <span class="s2">&quot;academy-opensearch&quot;</span>
+<span class="n">password</span> <span class="o">=</span> <span class="s2">&quot;8q</span><span class="si">%a</span><span class="s2">^6uP@Yoqg71LIJEQVVhAu3lcYSOx#@Qs#w7E2IRJ3^!uIp&quot;</span>
+
+<span class="n">s3</span> <span class="o">=</span> <span class="n">boto3</span><span class="o">.</span><span class="n">client</span><span class="p">(</span><span class="s2">&quot;s3&quot;</span><span class="p">)</span>
+
+
+<span class="c1"># === Helper Functions ===</span>
+<div class="viewcode-block" id="get_bedrock_client">
+<a class="viewcode-back" href="../../Outreach_System_Functions.html#Outreach_System_Functions.data_function_doc.get_bedrock_client">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_bedrock_client</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Create and return a Bedrock Runtime client for the AWS region &#39;eu-central-1&#39;.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        boto3.client: An AWS Bedrock Runtime client configured for the &#39;eu-central-1&#39; region.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">boto3</span><span class="o">.</span><span class="n">client</span><span class="p">(</span><span class="s2">&quot;bedrock-runtime&quot;</span><span class="p">,</span> <span class="n">region_name</span><span class="o">=</span><span class="s2">&quot;eu-central-1&quot;</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="identify_industry">
+<a class="viewcode-back" href="../../Outreach_System_Functions.html#Outreach_System_Functions.data_function_doc.identify_industry">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">identify_industry</span><span class="p">(</span><span class="n">text</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Identify the primary industry relevant to the given text.</span>
+
+<span class="sd">    First attempts to extract the industry from a line explicitly stating it.</span>
+<span class="sd">    If not found, uses an LLM via AWS Bedrock to determine the most relevant industry</span>
+<span class="sd">    from a predefined list of candidates.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        text (str): The input text from which to determine the industry.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        str: The identified industry label from the candidate list,</span>
+<span class="sd">             or &quot;Unknown&quot; if it cannot be determined.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">candidate_labels</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="s2">&quot;Finance&quot;</span><span class="p">,</span> <span class="s2">&quot;Healthcare&quot;</span><span class="p">,</span> <span class="s2">&quot;Education&quot;</span><span class="p">,</span> <span class="s2">&quot;Retail&quot;</span><span class="p">,</span> <span class="s2">&quot;Technology&quot;</span><span class="p">,</span> <span class="s2">&quot;Real Estate&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;Telecommunications&quot;</span><span class="p">,</span> <span class="s2">&quot;Manufacturing&quot;</span><span class="p">,</span> <span class="s2">&quot;Transportation&quot;</span><span class="p">,</span> <span class="s2">&quot;Energy&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;Entertainment&quot;</span><span class="p">,</span> <span class="s2">&quot;Legal&quot;</span><span class="p">,</span> <span class="s2">&quot;Hospitality&quot;</span><span class="p">,</span> <span class="s2">&quot;Agriculture&quot;</span><span class="p">,</span> <span class="s2">&quot;Construction&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;Government&quot;</span><span class="p">,</span> <span class="s2">&quot;Aerospace&quot;</span><span class="p">,</span> <span class="s2">&quot;Automotive&quot;</span><span class="p">,</span> <span class="s2">&quot;Nonprofit&quot;</span><span class="p">,</span> <span class="s2">&quot;Food &amp; Beverage&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;Insurance&quot;</span><span class="p">,</span> <span class="s2">&quot;Sports&quot;</span><span class="p">,</span> <span class="s2">&quot;Pharmaceuticals&quot;</span><span class="p">,</span> <span class="s2">&quot;Mining&quot;</span><span class="p">,</span> <span class="s2">&quot;Fashion&quot;</span>
+    <span class="p">]</span>
+
+    <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">text</span><span class="o">.</span><span class="n">splitlines</span><span class="p">():</span>
+        <span class="k">if</span> <span class="s2">&quot;industry: &quot;</span> <span class="ow">in</span> <span class="n">line</span><span class="o">.</span><span class="n">lower</span><span class="p">():</span>
+            <span class="n">industries_from_text</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;:&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span>
+            <span class="n">industry_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">title</span><span class="p">()</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">industries_from_text</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;,&quot;</span><span class="p">)]</span>
+            <span class="k">for</span> <span class="n">industry</span> <span class="ow">in</span> <span class="n">industry_list</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">industry</span> <span class="ow">in</span> <span class="n">candidate_labels</span><span class="p">:</span>
+                    <span class="k">return</span> <span class="n">industry</span>
+
+    <span class="n">prompt</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">    Human: Based on the following text, identify the primary industry it is most relevant to. </span>
+<span class="s2">    Only return one industry label from this list exactly: </span><span class="si">{</span><span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">candidate_labels</span><span class="p">)</span><span class="si">}</span><span class="s2">.</span>
+<span class="s2">    If multiple apply, pick the most dominant one. </span>
+<span class="s2">    Text: </span><span class="si">{</span><span class="n">text</span><span class="si">}</span>
+<span class="s2">    Assistant:&quot;&quot;&quot;</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">bedrock</span> <span class="o">=</span> <span class="n">get_bedrock_client</span><span class="p">()</span>
+        <span class="n">payload</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;anthropic_version&quot;</span><span class="p">:</span> <span class="s2">&quot;bedrock-2023-05-31&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;messages&quot;</span><span class="p">:</span> <span class="p">[{</span><span class="s2">&quot;role&quot;</span><span class="p">:</span> <span class="s2">&quot;user&quot;</span><span class="p">,</span> <span class="s2">&quot;content&quot;</span><span class="p">:</span> <span class="n">prompt</span><span class="p">}],</span>
+            <span class="s2">&quot;max_tokens&quot;</span><span class="p">:</span> <span class="mi">50</span><span class="p">,</span>
+            <span class="s2">&quot;temperature&quot;</span><span class="p">:</span> <span class="mf">0.2</span>
+        <span class="p">}</span>
+        <span class="n">response</span> <span class="o">=</span> <span class="n">bedrock</span><span class="o">.</span><span class="n">invoke_model</span><span class="p">(</span>
+            <span class="n">body</span><span class="o">=</span><span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">payload</span><span class="p">),</span>
+            <span class="n">modelId</span><span class="o">=</span><span class="s2">&quot;anthropic.claude-3-haiku-20240307-v1:0&quot;</span><span class="p">,</span>
+            <span class="n">accept</span><span class="o">=</span><span class="s2">&quot;application/json&quot;</span><span class="p">,</span>
+            <span class="n">contentType</span><span class="o">=</span><span class="s2">&quot;application/json&quot;</span>
+        <span class="p">)</span>
+        <span class="n">response_body</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">response</span><span class="p">[</span><span class="s2">&quot;body&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">read</span><span class="p">())</span>
+        <span class="n">predicted</span> <span class="o">=</span> <span class="n">response_body</span><span class="p">[</span><span class="s2">&quot;content&quot;</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="s2">&quot;text&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">label</span> <span class="ow">in</span> <span class="n">candidate_labels</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">label</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="ow">in</span> <span class="n">predicted</span><span class="o">.</span><span class="n">lower</span><span class="p">():</span>
+                <span class="k">return</span> <span class="n">label</span>
+        <span class="k">return</span> <span class="s2">&quot;Unknown&quot;</span>
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;[ERROR] Industry identification failed: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="s2">&quot;Unknown&quot;</span></div>
+
+
+<div class="viewcode-block" id="summarize_solution_with_claude">
+<a class="viewcode-back" href="../../Outreach_System_Functions.html#Outreach_System_Functions.data_function_doc.summarize_solution_with_claude">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">summarize_solution_with_claude</span><span class="p">(</span><span class="n">text</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Summarize a case study using a structured format via Claude on AWS Bedrock.</span>
+
+<span class="sd">    The summary includes:</span>
+<span class="sd">    - **Challenge**: The problem addressed.</span>
+<span class="sd">    - **Approach**: How the problem was solved.</span>
+<span class="sd">    - **Impact**: The results or benefits achieved.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        text (str): The full text of the case study to be summarized.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        str: A structured summary of the case study, or a fallback message if summarization fails.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">bedrock</span> <span class="o">=</span> <span class="n">get_bedrock_client</span><span class="p">()</span>
+    <span class="n">prompt</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;&quot;&quot;Human: Please summarize the following case study using the following structure:</span>
+<span class="s2">    - **Challenge**: What problem was being addressed?</span>
+<span class="s2">    - **Approach**: How was the problem approached or solved?</span>
+<span class="s2">    - **Impact**: What results or benefits were achieved?</span>
+
+<span class="s2">    Only include relevant information, and keep each section short and clear.</span>
+
+<span class="s2">    Case Study:</span>
+<span class="s2">    </span><span class="si">{</span><span class="n">text</span><span class="si">}</span>
+
+<span class="s2">    Assistant:&quot;&quot;&quot;</span>
+
+    <span class="n">payload</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s2">&quot;anthropic_version&quot;</span><span class="p">:</span> <span class="s2">&quot;bedrock-2023-05-31&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;messages&quot;</span><span class="p">:</span> <span class="p">[{</span><span class="s2">&quot;role&quot;</span><span class="p">:</span> <span class="s2">&quot;user&quot;</span><span class="p">,</span> <span class="s2">&quot;content&quot;</span><span class="p">:</span> <span class="n">prompt</span><span class="p">}],</span>
+        <span class="s2">&quot;max_tokens&quot;</span><span class="p">:</span> <span class="mi">300</span><span class="p">,</span>
+        <span class="s2">&quot;temperature&quot;</span><span class="p">:</span> <span class="mf">0.7</span>
+    <span class="p">}</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">response</span> <span class="o">=</span> <span class="n">bedrock</span><span class="o">.</span><span class="n">invoke_model</span><span class="p">(</span>
+            <span class="n">body</span><span class="o">=</span><span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">payload</span><span class="p">),</span>
+            <span class="n">modelId</span><span class="o">=</span><span class="s2">&quot;anthropic.claude-3-haiku-20240307-v1:0&quot;</span><span class="p">,</span>
+            <span class="n">accept</span><span class="o">=</span><span class="s2">&quot;application/json&quot;</span><span class="p">,</span>
+            <span class="n">contentType</span><span class="o">=</span><span class="s2">&quot;application/json&quot;</span>
+        <span class="p">)</span>
+
+        <span class="n">response_body</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">response</span><span class="p">[</span><span class="s1">&#39;body&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">read</span><span class="p">())</span>
+        <span class="k">return</span> <span class="n">response_body</span><span class="p">[</span><span class="s1">&#39;content&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="s1">&#39;text&#39;</span><span class="p">]</span>
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;[ERROR] Summary generation failed: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="s2">&quot;Summary not available&quot;</span></div>
+
+
+
+<div class="viewcode-block" id="extract_location_with_claude">
+<a class="viewcode-back" href="../../Outreach_System_Functions.html#Outreach_System_Functions.data_function_doc.extract_location_with_claude">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">extract_location_with_claude</span><span class="p">(</span><span class="n">text</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Extract the country in which a case study is based using Claude via AWS Bedrock.</span>
+
+<span class="sd">    This function first looks for explicit location hints in the text, then uses a language model</span>
+<span class="sd">    to infer the country based on both the full case study content and the extracted hints.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        text (str): The full case study text, potentially including location hints.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        str: The name of the identified country (e.g., &quot;Germany&quot;, &quot;South Africa&quot;).</span>
+<span class="sd">             Returns &quot;Unknown&quot; if the location cannot be confidently determined.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">location_candidates</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">text</span><span class="o">.</span><span class="n">splitlines</span><span class="p">():</span>
+        <span class="k">if</span> <span class="s2">&quot;location:&quot;</span> <span class="ow">in</span> <span class="n">line</span><span class="o">.</span><span class="n">lower</span><span class="p">():</span>
+            <span class="n">parts</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;:&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">parts</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="n">location_candidates</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">parts</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">())</span>
+    <span class="n">candidate_str</span> <span class="o">=</span> <span class="s2">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">location_candidates</span><span class="p">)</span> <span class="k">if</span> <span class="n">location_candidates</span> <span class="k">else</span> <span class="s2">&quot;N/A&quot;</span>
+
+    <span class="n">prompt</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">    Human: Please extract the country this case study is based in, using both the full case study text and any location hints like &quot;</span><span class="si">{</span><span class="n">candidate_str</span><span class="si">}</span><span class="s2">&quot;. </span>
+<span class="s2">    You do not need to construct a sentence as an answer to show your logic.</span>
+<span class="s2">    Return only the country name (e.g., &quot;Germany&quot;, &quot;South Africa&quot;, &quot;United States&quot;). </span>
+<span class="s2">    If no location can be confidently identified, return &quot;Unknown&quot;.</span>
+
+<span class="s2">    Case Study:</span>
+<span class="s2">    </span><span class="si">{</span><span class="n">text</span><span class="si">}</span>
+
+<span class="s2">    Assistant:&quot;&quot;&quot;</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">bedrock</span> <span class="o">=</span> <span class="n">get_bedrock_client</span><span class="p">()</span>
+        <span class="n">payload</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;anthropic_version&quot;</span><span class="p">:</span> <span class="s2">&quot;bedrock-2023-05-31&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;messages&quot;</span><span class="p">:</span> <span class="p">[{</span><span class="s2">&quot;role&quot;</span><span class="p">:</span> <span class="s2">&quot;user&quot;</span><span class="p">,</span> <span class="s2">&quot;content&quot;</span><span class="p">:</span> <span class="n">prompt</span><span class="p">}],</span>
+            <span class="s2">&quot;max_tokens&quot;</span><span class="p">:</span> <span class="mi">50</span><span class="p">,</span>
+            <span class="s2">&quot;temperature&quot;</span><span class="p">:</span> <span class="mi">0</span>
+        <span class="p">}</span>
+
+        <span class="n">response</span> <span class="o">=</span> <span class="n">bedrock</span><span class="o">.</span><span class="n">invoke_model</span><span class="p">(</span>
+            <span class="n">body</span><span class="o">=</span><span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">payload</span><span class="p">),</span>
+            <span class="n">modelId</span><span class="o">=</span><span class="s2">&quot;anthropic.claude-3-haiku-20240307-v1:0&quot;</span><span class="p">,</span>
+            <span class="n">accept</span><span class="o">=</span><span class="s2">&quot;application/json&quot;</span><span class="p">,</span>
+            <span class="n">contentType</span><span class="o">=</span><span class="s2">&quot;application/json&quot;</span>
+        <span class="p">)</span>
+
+        <span class="n">response_body</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">response</span><span class="p">[</span><span class="s1">&#39;body&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">read</span><span class="p">())</span>
+        <span class="k">return</span> <span class="n">response_body</span><span class="p">[</span><span class="s2">&quot;content&quot;</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="s2">&quot;text&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;[ERROR] Location extraction failed: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="s2">&quot;Unknown&quot;</span></div>
+
+
+
+<div class="viewcode-block" id="extract_casetudy_link">
+<a class="viewcode-back" href="../../Outreach_System_Functions.html#Outreach_System_Functions.data_function_doc.extract_casetudy_link">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">extract_casetudy_link</span><span class="p">(</span><span class="n">text</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Extract the first URL from the given text using a regular expression pattern.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        text (str): The text potentially containing a URL.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        str: The first matched URL if found, otherwise &quot;None&quot;.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">url_pattern</span> <span class="o">=</span> <span class="sa">r</span><span class="s1">&#39;https?://[^\s)]+&#39;</span> 
+    <span class="n">matches</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="n">url_pattern</span><span class="p">,</span> <span class="n">text</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">matches</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">if</span> <span class="n">matches</span> <span class="k">else</span> <span class="s2">&quot;None&quot;</span></div>
+
+
+
+<div class="viewcode-block" id="embed_text_titan">
+<a class="viewcode-back" href="../../Outreach_System_Functions.html#Outreach_System_Functions.data_function_doc.embed_text_titan">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">embed_text_titan</span><span class="p">(</span><span class="n">text_list</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Generate text embeddings for a list of documents using Amazon Titan via AWS Bedrock.</span>
+
+<span class="sd">    This function attempts to embed each text in the input list. If an embedding cannot be</span>
+<span class="sd">    generated for a particular entry, its index is added to a list of failures.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        text_list (list of str): A list of text strings to embed.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        tuple:</span>
+<span class="sd">            list: A list of embedding vectors (lists of floats) for successfully processed texts.</span>
+<span class="sd">            list: A list of indices for texts that failed to embed.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">bedrock</span> <span class="o">=</span> <span class="n">get_bedrock_client</span><span class="p">()</span>
+    <span class="n">embeddings</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">failed_indices</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">text</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">text_list</span><span class="p">):</span>
+        <span class="n">payload</span> <span class="o">=</span> <span class="p">{</span> <span class="s2">&quot;inputText&quot;</span><span class="p">:</span> <span class="n">text</span> <span class="p">}</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">response</span> <span class="o">=</span> <span class="n">bedrock</span><span class="o">.</span><span class="n">invoke_model</span><span class="p">(</span>
+                <span class="n">body</span><span class="o">=</span><span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">payload</span><span class="p">),</span>
+                <span class="n">modelId</span><span class="o">=</span><span class="s2">&quot;amazon.titan-embed-text-v1&quot;</span><span class="p">,</span>
+                <span class="n">accept</span><span class="o">=</span><span class="s2">&quot;application/json&quot;</span><span class="p">,</span>
+                <span class="n">contentType</span><span class="o">=</span><span class="s2">&quot;application/json&quot;</span>
+            <span class="p">)</span>
+            <span class="n">response_body</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">response</span><span class="p">[</span><span class="s1">&#39;body&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">read</span><span class="p">())</span>
+            <span class="n">embedding</span> <span class="o">=</span> <span class="n">response_body</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;embedding&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">embedding</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;[WARN] No embedding returned for doc #</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="n">failed_indices</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+                <span class="k">continue</span>
+            <span class="n">embeddings</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">embedding</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;[ERROR] Failed to embed doc #</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">failed_indices</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">embeddings</span><span class="p">,</span> <span class="n">failed_indices</span></div>
+
+
+
+<div class="viewcode-block" id="main">
+<a class="viewcode-back" href="../../Outreach_System_Functions.html#Outreach_System_Functions.data_function_doc.main">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">main</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Main execution function to process case study documents from S3, extract metadata, </span>
+<span class="sd">    generate embeddings using Amazon Titan, and index them into an OpenSearch cluster.</span>
+
+<span class="sd">    Workflow:</span>
+<span class="sd">    1. Connects to OpenSearch using provided credentials.</span>
+<span class="sd">    2. Lists all .docx files from a specified S3 bucket and prefix.</span>
+<span class="sd">    3. Filters out documents already indexed in OpenSearch.</span>
+<span class="sd">    4. For each new document:</span>
+<span class="sd">        - Downloads and reads text content.</span>
+<span class="sd">        - Identifies industry and location using Claude.</span>
+<span class="sd">        - Extracts solution summary and source link.</span>
+<span class="sd">        - Prepares metadata and stores documents locally.</span>
+<span class="sd">    5. Generates vector embeddings for each document using Amazon Titan.</span>
+<span class="sd">    6. Creates a new OpenSearch index if it doesn’t exist.</span>
+<span class="sd">    7. Indexes each document into OpenSearch along with its embedding and metadata.</span>
+
+<span class="sd">    Raises:</span>
+<span class="sd">        Any exceptions are caught and printed during processing, embedding, and indexing.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">documents</span><span class="p">,</span> <span class="n">metadatas</span><span class="p">,</span> <span class="n">ids</span> <span class="o">=</span> <span class="p">[],</span> <span class="p">[],</span> <span class="p">[]</span>
+    <span class="n">client</span> <span class="o">=</span> <span class="n">OpenSearch</span><span class="p">(</span>
+        <span class="n">hosts</span><span class="o">=</span><span class="p">[</span><span class="n">host</span><span class="p">],</span>
+        <span class="n">http_auth</span><span class="o">=</span><span class="p">(</span><span class="n">username</span><span class="p">,</span> <span class="n">password</span><span class="p">),</span>
+        <span class="n">use_ssl</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">verify_certs</span><span class="o">=</span><span class="kc">False</span>
+    <span class="p">)</span>
+
+    <span class="n">response</span> <span class="o">=</span> <span class="n">s3</span><span class="o">.</span><span class="n">list_objects_v2</span><span class="p">(</span><span class="n">Bucket</span><span class="o">=</span><span class="n">s3_bucket</span><span class="p">,</span> <span class="n">Prefix</span><span class="o">=</span><span class="n">s3_prefix</span><span class="p">)</span>
+    <span class="n">files</span> <span class="o">=</span> <span class="p">[</span><span class="n">item</span><span class="p">[</span><span class="s1">&#39;Key&#39;</span><span class="p">]</span> <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">response</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;Contents&#39;</span><span class="p">,</span> <span class="p">[])</span> <span class="k">if</span> <span class="n">item</span><span class="p">[</span><span class="s1">&#39;Key&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;.docx&#39;</span><span class="p">)]</span>
+
+    <span class="n">already_indexed_files</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">query_body</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;query&quot;</span><span class="p">:</span> <span class="p">{</span> <span class="s2">&quot;match_all&quot;</span><span class="p">:</span> <span class="p">{}</span> <span class="p">},</span>
+            <span class="s2">&quot;_source&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;metadata.file_name&quot;</span><span class="p">],</span>
+            <span class="s2">&quot;size&quot;</span><span class="p">:</span> <span class="mi">10000</span>
+        <span class="p">}</span>
+        <span class="n">response</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="n">index</span><span class="o">=</span><span class="n">index_name</span><span class="p">,</span> <span class="n">body</span><span class="o">=</span><span class="n">query_body</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">hit</span> <span class="ow">in</span> <span class="n">response</span><span class="p">[</span><span class="s1">&#39;hits&#39;</span><span class="p">][</span><span class="s1">&#39;hits&#39;</span><span class="p">]:</span>
+            <span class="n">file_name</span> <span class="o">=</span> <span class="n">hit</span><span class="p">[</span><span class="s1">&#39;_source&#39;</span><span class="p">][</span><span class="s1">&#39;metadata&#39;</span><span class="p">][</span><span class="s1">&#39;file_name&#39;</span><span class="p">]</span>
+            <span class="n">already_indexed_files</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">file_name</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;[ERROR] OpenSearch index fetch failed: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="n">new_files</span> <span class="o">=</span> <span class="p">[</span><span class="n">f</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">files</span> <span class="k">if</span> <span class="n">f</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">already_indexed_files</span><span class="p">]</span>
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">s3_key</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">new_files</span><span class="p">):</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">📄 Processing S3 file: </span><span class="si">{</span><span class="n">s3_key</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">file_obj</span> <span class="o">=</span> <span class="n">s3</span><span class="o">.</span><span class="n">get_object</span><span class="p">(</span><span class="n">Bucket</span><span class="o">=</span><span class="n">s3_bucket</span><span class="p">,</span> <span class="n">Key</span><span class="o">=</span><span class="n">s3_key</span><span class="p">)</span>
+        <span class="n">file_content</span> <span class="o">=</span> <span class="n">file_obj</span><span class="p">[</span><span class="s1">&#39;Body&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+        <span class="n">doc</span> <span class="o">=</span> <span class="n">Document</span><span class="p">(</span><span class="n">io</span><span class="o">.</span><span class="n">BytesIO</span><span class="p">(</span><span class="n">file_content</span><span class="p">))</span>
+        <span class="n">full_text</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">p</span><span class="o">.</span><span class="n">text</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">doc</span><span class="o">.</span><span class="n">paragraphs</span> <span class="k">if</span> <span class="n">p</span><span class="o">.</span><span class="n">text</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="o">!=</span> <span class="s2">&quot;&quot;</span><span class="p">])</span>
+
+        <span class="n">industry</span> <span class="o">=</span> <span class="n">identify_industry</span><span class="p">(</span><span class="n">full_text</span><span class="p">)</span>
+        <span class="n">location</span> <span class="o">=</span> <span class="n">extract_location_with_claude</span><span class="p">(</span><span class="n">full_text</span><span class="p">)</span>
+        <span class="n">link</span> <span class="o">=</span> <span class="n">extract_casetudy_link</span><span class="p">(</span><span class="n">full_text</span><span class="p">)</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">summary</span> <span class="o">=</span> <span class="n">summarize_solution_with_claude</span><span class="p">(</span><span class="n">full_text</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;[ERROR] Summary failed for </span><span class="si">{</span><span class="n">s3_key</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">continue</span>
+
+        <span class="n">metadata</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;file_name&#39;</span><span class="p">:</span> <span class="n">s3_key</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span>
+            <span class="s1">&#39;industry&#39;</span><span class="p">:</span> <span class="n">industry</span><span class="p">,</span>
+            <span class="s1">&#39;location&#39;</span><span class="p">:</span> <span class="n">location</span><span class="p">,</span>
+            <span class="s1">&#39;solution_summary&#39;</span><span class="p">:</span> <span class="n">summary</span><span class="p">,</span>
+            <span class="s1">&#39;casestudy_link&#39;</span><span class="p">:</span> <span class="n">link</span><span class="p">,</span>
+            <span class="s1">&#39;doc_type&#39;</span><span class="p">:</span> <span class="s1">&#39;Case Study&#39;</span>
+        <span class="p">}</span>
+
+        <span class="n">documents</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">full_text</span><span class="p">)</span>
+        <span class="n">metadatas</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">metadata</span><span class="p">)</span>
+        <span class="n">ids</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">))</span>
+
+    <span class="n">embeddings</span><span class="p">,</span> <span class="n">failed_indices</span> <span class="o">=</span> <span class="n">embed_text_titan</span><span class="p">(</span><span class="n">documents</span><span class="p">)</span>
+    <span class="n">documents</span> <span class="o">=</span> <span class="p">[</span><span class="n">doc</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">doc</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">documents</span><span class="p">)</span> <span class="k">if</span> <span class="n">i</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">failed_indices</span><span class="p">]</span>
+    <span class="n">metadatas</span> <span class="o">=</span> <span class="p">[</span><span class="n">meta</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">meta</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">metadatas</span><span class="p">)</span> <span class="k">if</span> <span class="n">i</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">failed_indices</span><span class="p">]</span>
+    <span class="n">ids</span> <span class="o">=</span> <span class="p">[</span><span class="n">id_</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">id_</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">ids</span><span class="p">)</span> <span class="k">if</span> <span class="n">i</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">failed_indices</span><span class="p">]</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">client</span><span class="o">.</span><span class="n">indices</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">index</span><span class="o">=</span><span class="n">index_name</span><span class="p">):</span>
+        <span class="n">vector_index_mapping</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;settings&quot;</span><span class="p">:</span> <span class="p">{</span> <span class="s2">&quot;index&quot;</span><span class="p">:</span> <span class="p">{</span> <span class="s2">&quot;knn&quot;</span><span class="p">:</span> <span class="kc">True</span> <span class="p">}</span> <span class="p">},</span>
+            <span class="s2">&quot;mappings&quot;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s2">&quot;properties&quot;</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="s2">&quot;id&quot;</span><span class="p">:</span> <span class="p">{</span> <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;keyword&quot;</span> <span class="p">},</span>
+                    <span class="s2">&quot;document&quot;</span><span class="p">:</span> <span class="p">{</span> <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;text&quot;</span> <span class="p">},</span>
+                    <span class="s2">&quot;embedding&quot;</span><span class="p">:</span> <span class="p">{</span>
+                        <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;knn_vector&quot;</span><span class="p">,</span>
+                        <span class="s2">&quot;dimension&quot;</span><span class="p">:</span> <span class="mi">1536</span><span class="p">,</span>
+                        <span class="s2">&quot;method&quot;</span><span class="p">:</span> <span class="p">{</span>
+                            <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;hnsw&quot;</span><span class="p">,</span>
+                            <span class="s2">&quot;space_type&quot;</span><span class="p">:</span> <span class="s2">&quot;cosinesimil&quot;</span><span class="p">,</span>
+                            <span class="s2">&quot;engine&quot;</span><span class="p">:</span> <span class="s2">&quot;nmslib&quot;</span>
+                        <span class="p">}</span>
+                    <span class="p">},</span>
+                    <span class="s2">&quot;metadata&quot;</span><span class="p">:</span> <span class="p">{</span> <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;object&quot;</span><span class="p">,</span> <span class="s2">&quot;enabled&quot;</span><span class="p">:</span> <span class="kc">True</span> <span class="p">}</span>
+                <span class="p">}</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+        <span class="n">client</span><span class="o">.</span><span class="n">indices</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="n">index</span><span class="o">=</span><span class="n">index_name</span><span class="p">,</span> <span class="n">body</span><span class="o">=</span><span class="n">vector_index_mapping</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;✅ Index &#39;</span><span class="si">{</span><span class="n">index_name</span><span class="si">}</span><span class="s2">&#39; created.&quot;</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">documents</span><span class="p">)):</span>
+        <span class="n">body</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;id&quot;</span><span class="p">:</span> <span class="n">ids</span><span class="p">[</span><span class="n">i</span><span class="p">],</span>
+            <span class="s2">&quot;document&quot;</span><span class="p">:</span> <span class="n">documents</span><span class="p">[</span><span class="n">i</span><span class="p">],</span>
+            <span class="s2">&quot;embedding&quot;</span><span class="p">:</span> <span class="n">embeddings</span><span class="p">[</span><span class="n">i</span><span class="p">],</span>
+            <span class="s2">&quot;metadata&quot;</span><span class="p">:</span> <span class="n">metadatas</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+        <span class="p">}</span>
+        <span class="n">client</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">index</span><span class="o">=</span><span class="n">index_name</span><span class="p">,</span> <span class="nb">id</span><span class="o">=</span><span class="n">ids</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">body</span><span class="o">=</span><span class="n">body</span><span class="p">)</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">All documents successfully indexed into OpenSearch!&quot;</span><span class="p">)</span></div>
+
+
+<span class="c1"># === Entry Point ===</span>
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="n">main</span><span class="p">()</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Mohammed Wajaahath.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

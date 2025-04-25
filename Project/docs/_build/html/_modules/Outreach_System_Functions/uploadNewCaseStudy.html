@@ -1,0 +1,152 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Outreach_System_Functions.uploadNewCaseStudy &mdash; outreach_project v1.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../_static/documentation_options.js?v=e160b93e"></script>
+      <script src="../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            outreach_project
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../Outreach_System_Functions.html">Outreach_System_Functions package</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">outreach_project</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">Outreach_System_Functions.uploadNewCaseStudy</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for Outreach_System_Functions.uploadNewCaseStudy</h1><div class="highlight"><pre>
+<span></span><span class="c1">############ IMPORTS ######################</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">docx</span><span class="w"> </span><span class="kn">import</span> <span class="n">Document</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">botocore.exceptions</span><span class="w"> </span><span class="kn">import</span> <span class="n">BotoCoreError</span><span class="p">,</span> <span class="n">ClientError</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">boto3</span>
+
+<span class="c1">###### CONFIGURE AWS &amp; S3 INFO ####################################</span>
+<span class="n">s3_bucket</span> <span class="o">=</span> <span class="s2">&quot;project-outreach-system&quot;</span>
+<span class="n">s3_prefix</span> <span class="o">=</span> <span class="s2">&quot;Project Case Study Outreach System/Data/Case Studies&quot;</span>
+
+<span class="c1">###### MODULE FUNCTIONS ###########################################</span>
+<div class="viewcode-block" id="uploadCaseStudy">
+<a class="viewcode-back" href="../../Outreach_System_Functions.html#Outreach_System_Functions.uploadNewCaseStudy.uploadCaseStudy">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">uploadCaseStudy</span><span class="p">(</span><span class="n">content</span><span class="p">,</span> <span class="n">filename</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Creates a .docx file from the given content and uploads it to an S3 bucket.</span>
+
+<span class="sd">    The function creates a Word document using the `python-docx` library, writes each line of content</span>
+<span class="sd">    as a new paragraph, saves it locally with the specified filename, and uploads it to the given S3 bucket</span>
+<span class="sd">    and prefix using the `boto3` client.</span>
+
+<span class="sd">    :param content: The text content to be written to the .docx file. Each line will become a new paragraph.</span>
+<span class="sd">    :type content: str</span>
+<span class="sd">    :param filename: The base filename (without extension) to use for the local file and the S3 object.</span>
+<span class="sd">    :type filename: str</span>
+
+<span class="sd">    :raises BotoCoreError: If a low-level error occurs in the boto3 library while communicating with AWS.</span>
+<span class="sd">    :raises ClientError: If a client-level error occurs, such as authentication or permission issues.</span>
+
+<span class="sd">    :return: None</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Step 1: Create the .docx file</span>
+    <span class="n">object_key</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">s3_prefix</span><span class="si">}</span><span class="s1">/</span><span class="si">{</span><span class="n">filename</span><span class="si">}</span><span class="s1">.docx&#39;</span>
+    <span class="n">doc</span> <span class="o">=</span> <span class="n">Document</span><span class="p">()</span>
+
+    <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">content</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">):</span>
+        <span class="n">doc</span><span class="o">.</span><span class="n">add_paragraph</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
+
+    <span class="n">doc</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
+
+    <span class="c1"># Step 2: Upload to S3</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">s3</span> <span class="o">=</span> <span class="n">boto3</span><span class="o">.</span><span class="n">client</span><span class="p">(</span><span class="s1">&#39;s3&#39;</span><span class="p">)</span>
+
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="s1">&#39;rb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">data</span><span class="p">:</span>
+            <span class="n">s3</span><span class="o">.</span><span class="n">upload_fileobj</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">s3_bucket</span><span class="p">,</span> <span class="n">object_key</span><span class="p">)</span>
+
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Uploaded &#39;</span><span class="si">{</span><span class="n">filename</span><span class="si">}</span><span class="s2">&#39; to s3://</span><span class="si">{</span><span class="n">s3_bucket</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">object_key</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="k">except</span> <span class="p">(</span><span class="n">BotoCoreError</span><span class="p">,</span> <span class="n">ClientError</span><span class="p">)</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Failed to upload to s3:</span><span class="se">\n</span><span class="s2"> </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Mohammed Wajaahath.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

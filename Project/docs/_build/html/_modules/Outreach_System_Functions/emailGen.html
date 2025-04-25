@@ -1,0 +1,281 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Outreach_System_Functions.emailGen &mdash; outreach_project v1.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../_static/documentation_options.js?v=e160b93e"></script>
+      <script src="../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            outreach_project
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../Outreach_System_Functions.html">Outreach_System_Functions package</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">outreach_project</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">Outreach_System_Functions.emailGen</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for Outreach_System_Functions.emailGen</h1><div class="highlight"><pre>
+<span></span><span class="c1">####### IMPORTS #########################################################</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">langchain_aws</span><span class="w"> </span><span class="kn">import</span> <span class="n">ChatBedrock</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">langchain_core.prompts</span><span class="w"> </span><span class="kn">import</span> <span class="n">ChatPromptTemplate</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">langchain_core.output_parsers</span><span class="w"> </span><span class="kn">import</span> <span class="n">StrOutputParser</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">time</span>
+
+<span class="c1">### Structure model output</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pydantic</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseModel</span><span class="p">,</span> <span class="n">Field</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">langchain_core.messages</span><span class="w"> </span><span class="kn">import</span> <span class="n">HumanMessage</span><span class="p">,</span> <span class="n">SystemMessage</span>
+
+<span class="c1">########## HELPER FUNCTIONS ##############################################</span>
+<div class="viewcode-block" id="animatePrint">
+<a class="viewcode-back" href="../../Outreach_System_Functions.html#Outreach_System_Functions.emailGen.animatePrint">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">animatePrint</span><span class="p">(</span><span class="n">text</span><span class="p">,</span> <span class="n">speed</span><span class="o">=</span><span class="mi">70</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Print text with a typewriter-style animation to the terminal.</span>
+
+<span class="sd">    This function prints each character of the text with a delay between them, preventing text dumps </span>
+<span class="sd">    in the terminal and aiding in readability when displaying content, especially for longer text.</span>
+
+<span class="sd">    :param text: The text to animate.</span>
+<span class="sd">    :type text: str</span>
+<span class="sd">    :param speed: Characters per second, defaults to 70.</span>
+<span class="sd">    :type speed: int, optional</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">delay</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">/</span> <span class="n">speed</span>
+    <span class="k">for</span> <span class="n">char</span> <span class="ow">in</span> <span class="n">text</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">char</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">flush</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="n">delay</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">()</span></div>
+
+
+<span class="c1">######### CONFIGURE MODEL #################################################</span>
+<span class="c1"># Set up email generation model</span>
+<span class="n">model_id</span> <span class="o">=</span> <span class="s2">&quot;anthropic.claude-3-5-sonnet-20240620-v1:0&quot;</span>
+<span class="n">model</span> <span class="o">=</span> <span class="n">ChatBedrock</span><span class="p">(</span><span class="n">model_id</span><span class="o">=</span><span class="n">model_id</span><span class="p">)</span>
+
+<span class="c1"># Structured model</span>
+<div class="viewcode-block" id="Email">
+<a class="viewcode-back" href="../../Outreach_System_Functions.html#Outreach_System_Functions.emailGen.Email">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Email</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
+    <span class="n">to</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="s2">&quot;Who the email is being sent to: A dummy email address using the target company name as the domain&quot;</span><span class="p">)</span>
+    <span class="n">subject</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;The subject of the email. It should contain your company name (Elixirr). The subject should be something you&#39;d want to click on&quot;</span><span class="p">)</span>
+    <span class="n">body</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;The body of the email. Structured in markdown format&quot;</span><span class="p">)</span></div>
+
+
+<span class="n">structuredModel</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">with_structured_output</span><span class="p">(</span><span class="n">Email</span><span class="p">)</span>
+
+<span class="c1"># Define the prompt</span>
+<span class="n">system_template</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="s2">&quot;-- SYSTEM INSTRUCTIONS --</span><span class="se">\n</span><span class="s2">&quot;</span>
+    <span class="s2">&quot;You are a helpful assistant tasked with drafting short outreach emails for potential clients of the company &#39;Elixirr&#39;.</span><span class="se">\n</span><span class="s2">&quot;</span>
+    <span class="s2">&quot;Your goal is to start a light, low-pressure conversation by showing how Elixirr&#39;s solutions (as referenced in the case study below) align with a challenge or opportunity at the target company.</span><span class="se">\n\n</span><span class="s2">&quot;</span>
+    <span class="s2">&quot;Using the case study and company details provided, write a concise, friendly, and relevant email that feels human—not salesy.</span><span class="se">\n\n</span><span class="s2">&quot;</span>
+    <span class="s2">&quot;Return the output in **Markdown format**.</span><span class="se">\n\n</span><span class="s2">&quot;</span>
+
+    <span class="s2">&quot;Guidelines for writing the email:</span><span class="se">\n</span><span class="s2">&quot;</span>
+    <span class="s2">&quot;Follow these email writing guidelines:</span><span class="se">\n</span><span class="s2">&quot;</span>
+    <span class="s2">&quot;- Keep it short: 50-100 words max.</span><span class="se">\n</span><span class="s2">&quot;</span>
+    <span class="s2">&quot;- Sound human. Keep it light, low-pressure, and professional—humour is welcome if it fits.</span><span class="se">\n</span><span class="s2">&quot;</span>
+    <span class="s2">&quot;- Don&#39;t push for a meeting or assume interest. Your aim is to spark curiosity.</span><span class="se">\n</span><span class="s2">&quot;</span>
+    <span class="s2">&quot;- Avoid generic marketing phrases (e.g. &#39;proven track record&#39;).</span><span class="se">\n</span><span class="s2">&quot;</span>
+    <span class="s2">&quot;- Focus on something specific about the target company and how Elixirr could help.</span><span class="se">\n</span><span class="s2">&quot;</span>
+    <span class="s2">&quot;- Mention the case study briefly, only as relevant background.</span><span class="se">\n</span><span class="s2">&quot;</span>
+    <span class="s2">&quot;- Include a link to the case study: [use a dummy link for now].</span><span class="se">\n</span><span class="s2">&quot;</span>
+    <span class="s2">&quot;- Let them know they can reach out with questions or if they want to chat.</span><span class="se">\n</span><span class="s2">&quot;</span>
+    <span class="s2">&quot;- If helpful for clarity, use bullet points or numbering.</span><span class="se">\n\n</span><span class="s2">&quot;</span>
+    <span class="s2">&quot;- Propose a meeting:</span><span class="se">\n</span><span class="s2">&quot;</span>
+    <span class="s2">&quot;- If the company is in the UK, USA, or South Africa, suggest an in-person meeting.</span><span class="se">\n</span><span class="s2">&quot;</span>
+    <span class="s2">&quot;- Otherwise, propose a Microsoft Teams meeting and include a placeholder link to schedule.</span><span class="se">\n\n</span><span class="s2">&quot;</span>
+
+    <span class="s2">&quot;Structure the email as follows in markdown (do not include template labels):</span><span class="se">\n</span><span class="s2">&quot;</span>
+    <span class="s2">&quot;1. Greeting</span><span class="se">\n</span><span class="s2">&quot;</span>
+    <span class="s2">&quot;2. Hook: Brief, interesting opening</span><span class="se">\n</span><span class="s2">&quot;</span>
+    <span class="s2">&quot;3. Relevance: Tie a specific company insight to Elixirr&#39;s capability</span><span class="se">\n</span><span class="s2">&quot;</span>
+    <span class="s2">&quot;4. Value: Say how Elixirr can help (light case study reference)</span><span class="se">\n</span><span class="s2">&quot;</span>
+    <span class="s2">&quot;5. Invite them to ask questions or reach out</span><span class="se">\n</span><span class="s2">&quot;</span>
+    <span class="s2">&quot;6. Meeting proposal with relevent links&quot;</span>
+    <span class="s2">&quot;7. Friendly sign-off mentioning Elixirr</span><span class="se">\n\n</span><span class="s2">&quot;</span>
+
+    <span class="s2">&quot;---- END OF SYSTEM INSTRUCTIONS ----&quot;</span>
+<span class="p">)</span>
+
+<span class="c1">############# GENERATING EMAIL TEMPLATE EXAMPLE #########################################################################################</span>
+<div class="viewcode-block" id="generateEmail">
+<a class="viewcode-back" href="../../Outreach_System_Functions.html#Outreach_System_Functions.emailGen.generateEmail">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">generateEmail</span><span class="p">(</span><span class="n">caseStudyDetails</span><span class="p">,</span> <span class="n">targetCompanyDetails</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Generates an outreach email using structured AI output based on a provided case study and target company details.</span>
+
+<span class="sd">    :param caseStudyDetails: Case study text describing Elixirr&#39;s previous engagement.</span>
+<span class="sd">    :type caseStudyDetails: str</span>
+<span class="sd">    :param targetCompanyDetails: Insights or notes about the target company.</span>
+<span class="sd">    :type targetCompanyDetails: str</span>
+<span class="sd">    :param verbose: If True, animates the output.</span>
+<span class="sd">    :type verbose: bool</span>
+<span class="sd">    :return: A structured email object.</span>
+<span class="sd">    :rtype: Email</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span> <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Generating email...&quot;</span><span class="p">)</span>
+
+    <span class="n">human</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="s2">&quot;With reference to the following case study:</span><span class="se">\n</span><span class="s2">&quot;</span>
+        <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">caseStudyDetails</span><span class="si">}</span><span class="se">\n\n</span><span class="s2">&quot;</span>
+        <span class="s2">&quot;Write an outreach email to the following company. Here are the details of the target company:</span><span class="se">\n</span><span class="s2">&quot;</span>
+        <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">targetCompanyDetails</span><span class="si">}</span><span class="s2">&quot;</span>
+    <span class="p">)</span>
+
+    <span class="n">email</span> <span class="o">=</span> <span class="n">structuredModel</span><span class="o">.</span><span class="n">invoke</span><span class="p">([</span>
+        <span class="n">SystemMessage</span><span class="p">(</span><span class="n">content</span><span class="o">=</span><span class="n">system_template</span><span class="p">),</span>
+        <span class="n">HumanMessage</span><span class="p">(</span><span class="n">content</span><span class="o">=</span><span class="p">(</span><span class="n">human</span><span class="p">)),</span>
+    <span class="p">])</span>
+
+    <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+        <span class="n">animatePrint</span><span class="p">(</span><span class="s2">&quot;########## EMAIL TEMPLATE #################&quot;</span><span class="p">)</span>
+        <span class="n">animatePrint</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">To: &quot;</span> <span class="o">+</span> <span class="n">email</span><span class="o">.</span><span class="n">to</span><span class="p">)</span>
+        <span class="n">animatePrint</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Subject: &quot;</span> <span class="o">+</span> <span class="n">email</span><span class="o">.</span><span class="n">subject</span><span class="p">)</span>
+        <span class="n">animatePrint</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Body:</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">+</span> <span class="n">email</span><span class="o">.</span><span class="n">body</span> <span class="o">+</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">email</span></div>
+
+
+<div class="viewcode-block" id="tweakEmail">
+<a class="viewcode-back" href="../../Outreach_System_Functions.html#Outreach_System_Functions.emailGen.tweakEmail">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">tweakEmail</span><span class="p">(</span><span class="n">email</span><span class="p">,</span> <span class="n">changes</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Applies modifications to an already generated email while adhering to email writing guidelines.</span>
+
+<span class="sd">    :param email: The original email object.</span>
+<span class="sd">    :type email: Email</span>
+<span class="sd">    :param changes: Textual description of the desired changes.</span>
+<span class="sd">    :type changes: str</span>
+<span class="sd">    :param verbose: If True, animates the modified output.</span>
+<span class="sd">    :type verbose: bool</span>
+<span class="sd">    :return: A modified Email object.</span>
+<span class="sd">    :rtype: Email</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Modifying email. Changes:&quot;</span><span class="p">,</span> <span class="n">changes</span><span class="p">)</span>
+
+    <span class="n">newEmail</span> <span class="o">=</span> <span class="n">structuredModel</span><span class="o">.</span><span class="n">invoke</span><span class="p">([</span>
+        <span class="n">SystemMessage</span><span class="p">(</span><span class="n">content</span><span class="o">=</span><span class="s2">&quot;Given the following pydantic email object</span><span class="se">\n</span><span class="s2">&quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;Subject: </span><span class="si">{</span><span class="n">email</span><span class="o">.</span><span class="n">subject</span><span class="si">}</span><span class="se">\n</span><span class="s2">&quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;Body: </span><span class="si">{</span><span class="n">email</span><span class="o">.</span><span class="n">body</span><span class="si">}</span><span class="se">\n\n</span><span class="s2">&quot;</span>
+
+            <span class="s2">&quot;Follow these email writing guidelines:</span><span class="se">\n</span><span class="s2">&quot;</span>
+            <span class="s2">&quot;- Keep it short: 50-100 words max.</span><span class="se">\n</span><span class="s2">&quot;</span>
+            <span class="s2">&quot;- Sound human. Keep it light, low-pressure, and professional—humour is welcome if it fits.</span><span class="se">\n</span><span class="s2">&quot;</span>
+            <span class="s2">&quot;- Don&#39;t push for a meeting or assume interest. Your aim is to spark curiosity.</span><span class="se">\n</span><span class="s2">&quot;</span>
+            <span class="s2">&quot;- Avoid generic marketing phrases (e.g. &#39;proven track record&#39;).</span><span class="se">\n</span><span class="s2">&quot;</span>
+            <span class="s2">&quot;- Focus on something specific about the target company and how Elixirr could help.</span><span class="se">\n</span><span class="s2">&quot;</span>
+            <span class="s2">&quot;- Mention the case study briefly, only as relevant background.</span><span class="se">\n</span><span class="s2">&quot;</span>
+            <span class="s2">&quot;- Include a link to the case study: [use a dummy link for now].</span><span class="se">\n</span><span class="s2">&quot;</span>
+            <span class="s2">&quot;- Let them know they can reach out with questions or if they want to chat.</span><span class="se">\n</span><span class="s2">&quot;</span>
+            <span class="s2">&quot;- If helpful for clarity, use bullet points or numbering.</span><span class="se">\n\n</span><span class="s2">&quot;</span>
+            <span class="s2">&quot;- Propose a meeting:</span><span class="se">\n</span><span class="s2">&quot;</span>
+            <span class="s2">&quot;- If the company is in the UK, USA, or South Africa, suggest an in-person meeting.</span><span class="se">\n</span><span class="s2">&quot;</span>
+            <span class="s2">&quot;- Otherwise, propose a Microsoft Teams meeting and include a placeholder link to schedule.</span><span class="se">\n\n</span><span class="s2">&quot;</span>
+
+            <span class="s2">&quot;Structure the email as follows in markdown (do not include template labels):</span><span class="se">\n</span><span class="s2">&quot;</span>
+            <span class="s2">&quot;1. Greeting</span><span class="se">\n</span><span class="s2">&quot;</span>
+            <span class="s2">&quot;2. Hook: Brief, interesting opening</span><span class="se">\n</span><span class="s2">&quot;</span>
+            <span class="s2">&quot;3. Relevance: Tie a specific company insight to Elixirr&#39;s capability</span><span class="se">\n</span><span class="s2">&quot;</span>
+            <span class="s2">&quot;4. Value: Say how Elixirr can help (light case study reference)</span><span class="se">\n</span><span class="s2">&quot;</span>
+            <span class="s2">&quot;5. Invite them to ask questions or reach out</span><span class="se">\n</span><span class="s2">&quot;</span>
+            <span class="s2">&quot;6. Meeting proposal with relevent links&quot;</span>
+            <span class="s2">&quot;7. Friendly sign-off mentioning Elixirr</span><span class="se">\n\n</span><span class="s2">&quot;</span>
+
+            <span class="s2">&quot;and apply the following changes to the original email:&quot;</span><span class="p">),</span>
+        <span class="n">HumanMessage</span><span class="p">(</span><span class="n">content</span><span class="o">=</span><span class="n">changes</span><span class="p">),</span>
+    <span class="p">])</span>
+
+    <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+        <span class="n">animatePrint</span><span class="p">(</span><span class="s2">&quot;########## MODIFIED EMAIL #################&quot;</span><span class="p">)</span>
+        <span class="n">animatePrint</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">To: &quot;</span> <span class="o">+</span> <span class="n">newEmail</span><span class="o">.</span><span class="n">subject</span><span class="p">)</span>
+        <span class="n">animatePrint</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Subject: &quot;</span> <span class="o">+</span> <span class="n">newEmail</span><span class="o">.</span><span class="n">subject</span><span class="p">)</span>
+        <span class="n">animatePrint</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Body:</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">+</span> <span class="n">newEmail</span><span class="o">.</span><span class="n">body</span> <span class="o">+</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">newEmail</span></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Mohammed Wajaahath.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

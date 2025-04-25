@@ -1,0 +1,720 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Outreach_System_Functions package &mdash; outreach_project v1.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=e160b93e"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="prev" title="Welcome to Outreach System documentation!" href="index.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            outreach_project
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Outreach_System_Functions package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-Outreach_System_Functions.company_case_dynamo">Outreach_System_Functions.company_case_dynamo module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#Outreach_System_Functions.company_case_dynamo.build_industry_map"><code class="docutils literal notranslate"><span class="pre">build_industry_map()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#Outreach_System_Functions.company_case_dynamo.calculate_industry_relevance"><code class="docutils literal notranslate"><span class="pre">calculate_industry_relevance()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#Outreach_System_Functions.company_case_dynamo.calculate_location_relevance"><code class="docutils literal notranslate"><span class="pre">calculate_location_relevance()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#Outreach_System_Functions.company_case_dynamo.calculate_size_relevance"><code class="docutils literal notranslate"><span class="pre">calculate_size_relevance()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#Outreach_System_Functions.company_case_dynamo.calculate_solution_relevance"><code class="docutils literal notranslate"><span class="pre">calculate_solution_relevance()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#Outreach_System_Functions.company_case_dynamo.calculate_tech_keywords_relevance"><code class="docutils literal notranslate"><span class="pre">calculate_tech_keywords_relevance()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#Outreach_System_Functions.company_case_dynamo.calculate_text_similarity"><code class="docutils literal notranslate"><span class="pre">calculate_text_similarity()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#Outreach_System_Functions.company_case_dynamo.extract_about_from_homepage"><code class="docutils literal notranslate"><span class="pre">extract_about_from_homepage()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#Outreach_System_Functions.company_case_dynamo.extract_case_study_info"><code class="docutils literal notranslate"><span class="pre">extract_case_study_info()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#Outreach_System_Functions.company_case_dynamo.filter_companies_from_dynamodb"><code class="docutils literal notranslate"><span class="pre">filter_companies_from_dynamodb()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#Outreach_System_Functions.company_case_dynamo.map_case_study_size_to_company_size"><code class="docutils literal notranslate"><span class="pre">map_case_study_size_to_company_size()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#Outreach_System_Functions.company_case_dynamo.normalize_text"><code class="docutils literal notranslate"><span class="pre">normalize_text()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#Outreach_System_Functions.company_case_dynamo.parse_employee_count"><code class="docutils literal notranslate"><span class="pre">parse_employee_count()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#Outreach_System_Functions.company_case_dynamo.process_case_study"><code class="docutils literal notranslate"><span class="pre">process_case_study()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#Outreach_System_Functions.company_case_dynamo.scrape_company_website"><code class="docutils literal notranslate"><span class="pre">scrape_company_website()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#Outreach_System_Functions.company_case_dynamo.select_target_companies"><code class="docutils literal notranslate"><span class="pre">select_target_companies()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#module-Outreach_System_Functions.data_function_doc">Outreach_System_Functions.data_function_doc module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#Outreach_System_Functions.data_function_doc.embed_text_titan"><code class="docutils literal notranslate"><span class="pre">embed_text_titan()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#Outreach_System_Functions.data_function_doc.extract_casetudy_link"><code class="docutils literal notranslate"><span class="pre">extract_casetudy_link()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#Outreach_System_Functions.data_function_doc.extract_location_with_claude"><code class="docutils literal notranslate"><span class="pre">extract_location_with_claude()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#Outreach_System_Functions.data_function_doc.get_bedrock_client"><code class="docutils literal notranslate"><span class="pre">get_bedrock_client()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#Outreach_System_Functions.data_function_doc.identify_industry"><code class="docutils literal notranslate"><span class="pre">identify_industry()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#Outreach_System_Functions.data_function_doc.main"><code class="docutils literal notranslate"><span class="pre">main()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#Outreach_System_Functions.data_function_doc.summarize_solution_with_claude"><code class="docutils literal notranslate"><span class="pre">summarize_solution_with_claude()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#module-Outreach_System_Functions.emailGen">Outreach_System_Functions.emailGen module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#Outreach_System_Functions.emailGen.Email"><code class="docutils literal notranslate"><span class="pre">Email</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#Outreach_System_Functions.emailGen.Email.body"><code class="docutils literal notranslate"><span class="pre">Email.body</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#Outreach_System_Functions.emailGen.Email.model_config"><code class="docutils literal notranslate"><span class="pre">Email.model_config</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#Outreach_System_Functions.emailGen.Email.subject"><code class="docutils literal notranslate"><span class="pre">Email.subject</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#Outreach_System_Functions.emailGen.Email.to"><code class="docutils literal notranslate"><span class="pre">Email.to</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#Outreach_System_Functions.emailGen.animatePrint"><code class="docutils literal notranslate"><span class="pre">animatePrint()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#Outreach_System_Functions.emailGen.generateEmail"><code class="docutils literal notranslate"><span class="pre">generateEmail()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#Outreach_System_Functions.emailGen.tweakEmail"><code class="docutils literal notranslate"><span class="pre">tweakEmail()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#module-Outreach_System_Functions.uploadNewCaseStudy">Outreach_System_Functions.uploadNewCaseStudy module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#Outreach_System_Functions.uploadNewCaseStudy.uploadCaseStudy"><code class="docutils literal notranslate"><span class="pre">uploadCaseStudy()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#module-Outreach_System_Functions">Module contents</a></li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">outreach_project</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Outreach_System_Functions package</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/Outreach_System_Functions.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="outreach-system-functions-package">
+<h1>Outreach_System_Functions package<a class="headerlink" href="#outreach-system-functions-package" title="Link to this heading"></a></h1>
+<section id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Link to this heading"></a></h2>
+</section>
+<section id="module-Outreach_System_Functions.company_case_dynamo">
+<span id="outreach-system-functions-company-case-dynamo-module"></span><h2>Outreach_System_Functions.company_case_dynamo module<a class="headerlink" href="#module-Outreach_System_Functions.company_case_dynamo" title="Link to this heading"></a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="Outreach_System_Functions.company_case_dynamo.build_industry_map">
+<span class="sig-name descname"><span class="pre">build_industry_map</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/Outreach_System_Functions/company_case_dynamo.html#build_industry_map"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Outreach_System_Functions.company_case_dynamo.build_industry_map" title="Link to this definition"></a></dt>
+<dd><p>Construct a mapping of industry categories to relevant keywords.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>dict mapping industries to keyword lists</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="Outreach_System_Functions.company_case_dynamo.calculate_industry_relevance">
+<span class="sig-name descname"><span class="pre">calculate_industry_relevance</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">company_industry</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">case_study_industry</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Outreach_System_Functions/company_case_dynamo.html#calculate_industry_relevance"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Outreach_System_Functions.company_case_dynamo.calculate_industry_relevance" title="Link to this definition"></a></dt>
+<dd><p>Calculate relevance between a company’s industry and a case study’s industry.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>company_industry</strong> (<em>str</em>) – Industry of the company</p></li>
+<li><p><strong>case_study_industry</strong> (<em>str</em>) – Industry mentioned in the case study</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Relevance score between 0 and 5</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="Outreach_System_Functions.company_case_dynamo.calculate_location_relevance">
+<span class="sig-name descname"><span class="pre">calculate_location_relevance</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">company_location</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">case_study_location</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Outreach_System_Functions/company_case_dynamo.html#calculate_location_relevance"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Outreach_System_Functions.company_case_dynamo.calculate_location_relevance" title="Link to this definition"></a></dt>
+<dd><p>Calculate location relevance based on country or region proximity.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>company_location</strong> (<em>str</em>) – Location of the company</p></li>
+<li><p><strong>case_study_location</strong> (<em>str</em>) – Location from the case study</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Location relevance score (0-3)</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="Outreach_System_Functions.company_case_dynamo.calculate_size_relevance">
+<span class="sig-name descname"><span class="pre">calculate_size_relevance</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">company_size</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target_sizes</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Outreach_System_Functions/company_case_dynamo.html#calculate_size_relevance"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Outreach_System_Functions.company_case_dynamo.calculate_size_relevance" title="Link to this definition"></a></dt>
+<dd><p>Score company size relevance to case study indicators.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>company_size</strong> – str, e.g. “51-200”</p></li>
+<li><p><strong>target_sizes</strong> – list of str</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>int score from 0 to 5</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="Outreach_System_Functions.company_case_dynamo.calculate_solution_relevance">
+<span class="sig-name descname"><span class="pre">calculate_solution_relevance</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">company_info</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">case_study_info</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Outreach_System_Functions/company_case_dynamo.html#calculate_solution_relevance"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Outreach_System_Functions.company_case_dynamo.calculate_solution_relevance" title="Link to this definition"></a></dt>
+<dd><p>Calculate a comprehensive solution relevance score using multiple factors.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>company_info</strong> (<em>dict</em>) – Dictionary containing company details</p></li>
+<li><p><strong>case_study_info</strong> (<em>dict</em>) – Dictionary containing case study details</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Dictionary with total score and component scores</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="Outreach_System_Functions.company_case_dynamo.calculate_tech_keywords_relevance">
+<span class="sig-name descname"><span class="pre">calculate_tech_keywords_relevance</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">company_info</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">case_study_info</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Outreach_System_Functions/company_case_dynamo.html#calculate_tech_keywords_relevance"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Outreach_System_Functions.company_case_dynamo.calculate_tech_keywords_relevance" title="Link to this definition"></a></dt>
+<dd><p>Calculate relevance based on technical keywords and company type.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>company_info</strong> (<em>dict</em>) – Dictionary containing company information</p></li>
+<li><p><strong>case_study_info</strong> (<em>dict</em>) – Dictionary containing case study information</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Tech relevance score, capped at 10</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="Outreach_System_Functions.company_case_dynamo.calculate_text_similarity">
+<span class="sig-name descname"><span class="pre">calculate_text_similarity</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">text1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">text2</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Outreach_System_Functions/company_case_dynamo.html#calculate_text_similarity"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Outreach_System_Functions.company_case_dynamo.calculate_text_similarity" title="Link to this definition"></a></dt>
+<dd><p>Calculate similarity between two strings using SequenceMatcher.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>text1</strong> – str</p></li>
+<li><p><strong>text2</strong> – str</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>float similarity ratio (0 to 1)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="Outreach_System_Functions.company_case_dynamo.extract_about_from_homepage">
+<span class="sig-name descname"><span class="pre">extract_about_from_homepage</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">url</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Outreach_System_Functions/company_case_dynamo.html#extract_about_from_homepage"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Outreach_System_Functions.company_case_dynamo.extract_about_from_homepage" title="Link to this definition"></a></dt>
+<dd><p>Extracts an ‘about’-like section from a company’s homepage,
+only if the detected language is English.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>url</strong> – str, website URL</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>str or None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="Outreach_System_Functions.company_case_dynamo.extract_case_study_info">
+<span class="sig-name descname"><span class="pre">extract_case_study_info</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">case_study_text</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Outreach_System_Functions/company_case_dynamo.html#extract_case_study_info"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Outreach_System_Functions.company_case_dynamo.extract_case_study_info" title="Link to this definition"></a></dt>
+<dd><p>Extract comprehensive information from case study text.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>case_study_text</strong> – str, full text of the case study</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>dict with extracted info: industry, location, solution details, tech keywords, and company size indicators</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="Outreach_System_Functions.company_case_dynamo.filter_companies_from_dynamodb">
+<span class="sig-name descname"><span class="pre">filter_companies_from_dynamodb</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">table</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">case_study_info</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_score</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">30</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Outreach_System_Functions/company_case_dynamo.html#filter_companies_from_dynamodb"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Outreach_System_Functions.company_case_dynamo.filter_companies_from_dynamodb" title="Link to this definition"></a></dt>
+<dd><p>Query and filter companies from a DynamoDB table based on a case study and relevance scoring.</p>
+<p>This function scans a DynamoDB table to retrieve company profiles and filters them
+based on their relevance to the provided case study using multiple dimensions
+(industry, size, tech, and location). Relevance is computed using a composite score.
+Optionally applies an initial filter on industry before falling back to a full table scan.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>table</strong> (<em>boto3.resources.factory.dynamodb.Table</em>) – DynamoDB table resource (boto3 Table)</p></li>
+<li><p><strong>case_study_info</strong> (<em>dict</em>) – Information about the case study used for scoring relevance</p></li>
+<li><p><strong>min_score</strong> (<em>int</em>) – Minimum total relevance score for a company to be included</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>List of company dicts with total and individual relevance scores, sorted by total score</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>list[dict]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="Outreach_System_Functions.company_case_dynamo.map_case_study_size_to_company_size">
+<span class="sig-name descname"><span class="pre">map_case_study_size_to_company_size</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">case_size_indicators</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Outreach_System_Functions/company_case_dynamo.html#map_case_study_size_to_company_size"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Outreach_System_Functions.company_case_dynamo.map_case_study_size_to_company_size" title="Link to this definition"></a></dt>
+<dd><p>Map qualitative size indicators to employee count categories.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>case_size_indicators</strong> – list or str</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>list of size categories</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="Outreach_System_Functions.company_case_dynamo.normalize_text">
+<span class="sig-name descname"><span class="pre">normalize_text</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">text</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Outreach_System_Functions/company_case_dynamo.html#normalize_text"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Outreach_System_Functions.company_case_dynamo.normalize_text" title="Link to this definition"></a></dt>
+<dd><p>Normalize text for better matching.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>text</strong> – str</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>str, lowercased and whitespace-normalized</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="Outreach_System_Functions.company_case_dynamo.parse_employee_count">
+<span class="sig-name descname"><span class="pre">parse_employee_count</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">size_str</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Outreach_System_Functions/company_case_dynamo.html#parse_employee_count"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Outreach_System_Functions.company_case_dynamo.parse_employee_count" title="Link to this definition"></a></dt>
+<dd><p>Convert size strings to numerical employee ranges.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>size_str</strong> – str, e.g. “1-10”</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>tuple (min, max)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="Outreach_System_Functions.company_case_dynamo.process_case_study">
+<span class="sig-name descname"><span class="pre">process_case_study</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">case_study_text</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Outreach_System_Functions/company_case_dynamo.html#process_case_study"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Outreach_System_Functions.company_case_dynamo.process_case_study" title="Link to this definition"></a></dt>
+<dd><p>Process a case study text, retrieve and filter relevant companies,
+and find a target company with available about information.</p>
+<p>This function extracts information from a case study, queries DynamoDB for
+matching companies, and processes each company to find one with retrievable
+information about the company. The results are logged, and the details of
+the selected company are returned.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>case_study_text</strong> (<em>str</em>) – The text of the case study to process</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A tuple containing:
+- A list of strings representing the logged output during the processing
+- A list of company details (name, industry, size, country, website)</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>tuple[list[str], list[str]]</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>Exception</strong> – If an error occurs during processing (e.g., network failure, DynamoDB issue)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="Outreach_System_Functions.company_case_dynamo.scrape_company_website">
+<span class="sig-name descname"><span class="pre">scrape_company_website</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">company</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Outreach_System_Functions/company_case_dynamo.html#scrape_company_website"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Outreach_System_Functions.company_case_dynamo.scrape_company_website" title="Link to this definition"></a></dt>
+<dd><p>Scrapes a company website to extract about information.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>company</strong> – dict containing ‘website’ and ‘name’ keys</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>dict with ‘website’ and ‘about_info’</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="Outreach_System_Functions.company_case_dynamo.select_target_companies">
+<span class="sig-name descname"><span class="pre">select_target_companies</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">matching_companies</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_score</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">40</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Outreach_System_Functions/company_case_dynamo.html#select_target_companies"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Outreach_System_Functions.company_case_dynamo.select_target_companies" title="Link to this definition"></a></dt>
+<dd><p>Select and return companies that exceed a specified score threshold.</p>
+<p>This function filters out companies from a list of matching candidates based
+on a higher score threshold for use in targeted actions (e.g., outreach, partnership).
+Falls back to returning all matching companies if none meet the minimum threshold.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>matching_companies</strong> (<em>list</em><em>[</em><em>dict</em><em>]</em>) – List of companies with scored relevance</p></li>
+<li><p><strong>min_score</strong> (<em>int</em>) – Minimum score threshold for inclusion in final selection</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Filtered list of companies with scores &gt;= min_score</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>list[dict]</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-Outreach_System_Functions.data_function_doc">
+<span id="outreach-system-functions-data-function-doc-module"></span><h2>Outreach_System_Functions.data_function_doc module<a class="headerlink" href="#module-Outreach_System_Functions.data_function_doc" title="Link to this heading"></a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="Outreach_System_Functions.data_function_doc.embed_text_titan">
+<span class="sig-name descname"><span class="pre">embed_text_titan</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">text_list</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Outreach_System_Functions/data_function_doc.html#embed_text_titan"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Outreach_System_Functions.data_function_doc.embed_text_titan" title="Link to this definition"></a></dt>
+<dd><p>Generate text embeddings for a list of documents using Amazon Titan via AWS Bedrock.</p>
+<p>This function attempts to embed each text in the input list. If an embedding cannot be
+generated for a particular entry, its index is added to a list of failures.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>text_list</strong> (<em>list</em><em> of </em><em>str</em>) – A list of text strings to embed.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>list: A list of embedding vectors (lists of floats) for successfully processed texts.
+list: A list of indices for texts that failed to embed.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>tuple</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="Outreach_System_Functions.data_function_doc.extract_casetudy_link">
+<span class="sig-name descname"><span class="pre">extract_casetudy_link</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">text</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Outreach_System_Functions/data_function_doc.html#extract_casetudy_link"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Outreach_System_Functions.data_function_doc.extract_casetudy_link" title="Link to this definition"></a></dt>
+<dd><p>Extract the first URL from the given text using a regular expression pattern.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>text</strong> (<em>str</em>) – The text potentially containing a URL.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The first matched URL if found, otherwise “None”.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="Outreach_System_Functions.data_function_doc.extract_location_with_claude">
+<span class="sig-name descname"><span class="pre">extract_location_with_claude</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">text</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Outreach_System_Functions/data_function_doc.html#extract_location_with_claude"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Outreach_System_Functions.data_function_doc.extract_location_with_claude" title="Link to this definition"></a></dt>
+<dd><p>Extract the country in which a case study is based using Claude via AWS Bedrock.</p>
+<p>This function first looks for explicit location hints in the text, then uses a language model
+to infer the country based on both the full case study content and the extracted hints.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>text</strong> (<em>str</em>) – The full case study text, potentially including location hints.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><dl class="simple">
+<dt>The name of the identified country (e.g., “Germany”, “South Africa”).</dt><dd><p>Returns “Unknown” if the location cannot be confidently determined.</p>
+</dd>
+</dl>
+</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="Outreach_System_Functions.data_function_doc.get_bedrock_client">
+<span class="sig-name descname"><span class="pre">get_bedrock_client</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/Outreach_System_Functions/data_function_doc.html#get_bedrock_client"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Outreach_System_Functions.data_function_doc.get_bedrock_client" title="Link to this definition"></a></dt>
+<dd><p>Create and return a Bedrock Runtime client for the AWS region ‘eu-central-1’.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>An AWS Bedrock Runtime client configured for the ‘eu-central-1’ region.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>boto3.client</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="Outreach_System_Functions.data_function_doc.identify_industry">
+<span class="sig-name descname"><span class="pre">identify_industry</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">text</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Outreach_System_Functions/data_function_doc.html#identify_industry"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Outreach_System_Functions.data_function_doc.identify_industry" title="Link to this definition"></a></dt>
+<dd><p>Identify the primary industry relevant to the given text.</p>
+<p>First attempts to extract the industry from a line explicitly stating it.
+If not found, uses an LLM via AWS Bedrock to determine the most relevant industry
+from a predefined list of candidates.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>text</strong> (<em>str</em>) – The input text from which to determine the industry.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><dl class="simple">
+<dt>The identified industry label from the candidate list,</dt><dd><p>or “Unknown” if it cannot be determined.</p>
+</dd>
+</dl>
+</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="Outreach_System_Functions.data_function_doc.main">
+<span class="sig-name descname"><span class="pre">main</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/Outreach_System_Functions/data_function_doc.html#main"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Outreach_System_Functions.data_function_doc.main" title="Link to this definition"></a></dt>
+<dd><p>Main execution function to process case study documents from S3, extract metadata,
+generate embeddings using Amazon Titan, and index them into an OpenSearch cluster.</p>
+<p>Workflow:
+1. Connects to OpenSearch using provided credentials.
+2. Lists all .docx files from a specified S3 bucket and prefix.
+3. Filters out documents already indexed in OpenSearch.
+4. For each new document:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>Downloads and reads text content.</p></li>
+<li><p>Identifies industry and location using Claude.</p></li>
+<li><p>Extracts solution summary and source link.</p></li>
+<li><p>Prepares metadata and stores documents locally.</p></li>
+</ul>
+</div></blockquote>
+<ol class="arabic simple" start="5">
+<li><p>Generates vector embeddings for each document using Amazon Titan.</p></li>
+<li><p>Creates a new OpenSearch index if it doesn’t exist.</p></li>
+<li><p>Indexes each document into OpenSearch along with its embedding and metadata.</p></li>
+</ol>
+<dl class="field-list simple">
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>Any exceptions are caught and printed during processing</strong><strong>, </strong><strong>embedding</strong><strong>, </strong><strong>and indexing.</strong> – </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="Outreach_System_Functions.data_function_doc.summarize_solution_with_claude">
+<span class="sig-name descname"><span class="pre">summarize_solution_with_claude</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">text</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Outreach_System_Functions/data_function_doc.html#summarize_solution_with_claude"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Outreach_System_Functions.data_function_doc.summarize_solution_with_claude" title="Link to this definition"></a></dt>
+<dd><p>Summarize a case study using a structured format via Claude on AWS Bedrock.</p>
+<p>The summary includes:
+- <strong>Challenge</strong>: The problem addressed.
+- <strong>Approach</strong>: How the problem was solved.
+- <strong>Impact</strong>: The results or benefits achieved.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>text</strong> (<em>str</em>) – The full text of the case study to be summarized.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A structured summary of the case study, or a fallback message if summarization fails.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-Outreach_System_Functions.emailGen">
+<span id="outreach-system-functions-emailgen-module"></span><h2>Outreach_System_Functions.emailGen module<a class="headerlink" href="#module-Outreach_System_Functions.emailGen" title="Link to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="Outreach_System_Functions.emailGen.Email">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">Email</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">to</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'Who</span> <span class="pre">the</span> <span class="pre">email</span> <span class="pre">is</span> <span class="pre">being</span> <span class="pre">sent</span> <span class="pre">to:</span> <span class="pre">A</span> <span class="pre">dummy</span> <span class="pre">email</span> <span class="pre">address</span> <span class="pre">using</span> <span class="pre">the</span> <span class="pre">target</span> <span class="pre">company</span> <span class="pre">name</span> <span class="pre">as</span> <span class="pre">the</span> <span class="pre">domain'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">subject</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">body</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Outreach_System_Functions/emailGen.html#Email"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Outreach_System_Functions.emailGen.Email" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">BaseModel</span></code></p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="Outreach_System_Functions.emailGen.Email.body">
+<span class="sig-name descname"><span class="pre">body</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#Outreach_System_Functions.emailGen.Email.body" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="Outreach_System_Functions.emailGen.Email.model_config">
+<span class="sig-name descname"><span class="pre">model_config</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ClassVar</span><span class="p"><span class="pre">[</span></span><span class="pre">ConfigDict</span><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{}</span></em><a class="headerlink" href="#Outreach_System_Functions.emailGen.Email.model_config" title="Link to this definition"></a></dt>
+<dd><p>Configuration for the model, should be a dictionary conforming to [<cite>ConfigDict</cite>][pydantic.config.ConfigDict].</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="Outreach_System_Functions.emailGen.Email.subject">
+<span class="sig-name descname"><span class="pre">subject</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#Outreach_System_Functions.emailGen.Email.subject" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="Outreach_System_Functions.emailGen.Email.to">
+<span class="sig-name descname"><span class="pre">to</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#Outreach_System_Functions.emailGen.Email.to" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="Outreach_System_Functions.emailGen.animatePrint">
+<span class="sig-name descname"><span class="pre">animatePrint</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">text</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">speed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">70</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Outreach_System_Functions/emailGen.html#animatePrint"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Outreach_System_Functions.emailGen.animatePrint" title="Link to this definition"></a></dt>
+<dd><p>Print text with a typewriter-style animation to the terminal.</p>
+<p>This function prints each character of the text with a delay between them, preventing text dumps
+in the terminal and aiding in readability when displaying content, especially for longer text.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>text</strong> (<em>str</em>) – The text to animate.</p></li>
+<li><p><strong>speed</strong> (<em>int</em><em>, </em><em>optional</em>) – Characters per second, defaults to 70.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="Outreach_System_Functions.emailGen.generateEmail">
+<span class="sig-name descname"><span class="pre">generateEmail</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">caseStudyDetails</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">targetCompanyDetails</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Outreach_System_Functions/emailGen.html#generateEmail"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Outreach_System_Functions.emailGen.generateEmail" title="Link to this definition"></a></dt>
+<dd><p>Generates an outreach email using structured AI output based on a provided case study and target company details.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>caseStudyDetails</strong> (<em>str</em>) – Case study text describing Elixirr’s previous engagement.</p></li>
+<li><p><strong>targetCompanyDetails</strong> (<em>str</em>) – Insights or notes about the target company.</p></li>
+<li><p><strong>verbose</strong> (<em>bool</em>) – If True, animates the output.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A structured email object.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="#Outreach_System_Functions.emailGen.Email" title="Outreach_System_Functions.emailGen.Email">Email</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="Outreach_System_Functions.emailGen.tweakEmail">
+<span class="sig-name descname"><span class="pre">tweakEmail</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">email</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">changes</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Outreach_System_Functions/emailGen.html#tweakEmail"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Outreach_System_Functions.emailGen.tweakEmail" title="Link to this definition"></a></dt>
+<dd><p>Applies modifications to an already generated email while adhering to email writing guidelines.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>email</strong> (<a class="reference internal" href="#Outreach_System_Functions.emailGen.Email" title="Outreach_System_Functions.emailGen.Email"><em>Email</em></a>) – The original email object.</p></li>
+<li><p><strong>changes</strong> (<em>str</em>) – Textual description of the desired changes.</p></li>
+<li><p><strong>verbose</strong> (<em>bool</em>) – If True, animates the modified output.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A modified Email object.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="#Outreach_System_Functions.emailGen.Email" title="Outreach_System_Functions.emailGen.Email">Email</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-Outreach_System_Functions.uploadNewCaseStudy">
+<span id="outreach-system-functions-uploadnewcasestudy-module"></span><h2>Outreach_System_Functions.uploadNewCaseStudy module<a class="headerlink" href="#module-Outreach_System_Functions.uploadNewCaseStudy" title="Link to this heading"></a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="Outreach_System_Functions.uploadNewCaseStudy.uploadCaseStudy">
+<span class="sig-name descname"><span class="pre">uploadCaseStudy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">content</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filename</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/Outreach_System_Functions/uploadNewCaseStudy.html#uploadCaseStudy"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#Outreach_System_Functions.uploadNewCaseStudy.uploadCaseStudy" title="Link to this definition"></a></dt>
+<dd><p>Creates a .docx file from the given content and uploads it to an S3 bucket.</p>
+<p>The function creates a Word document using the <cite>python-docx</cite> library, writes each line of content
+as a new paragraph, saves it locally with the specified filename, and uploads it to the given S3 bucket
+and prefix using the <cite>boto3</cite> client.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>content</strong> (<em>str</em>) – The text content to be written to the .docx file. Each line will become a new paragraph.</p></li>
+<li><p><strong>filename</strong> (<em>str</em>) – The base filename (without extension) to use for the local file and the S3 object.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>BotoCoreError</strong> – If a low-level error occurs in the boto3 library while communicating with AWS.</p></li>
+<li><p><strong>ClientError</strong> – If a client-level error occurs, such as authentication or permission issues.</p></li>
+</ul>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-Outreach_System_Functions">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-Outreach_System_Functions" title="Link to this heading"></a></h2>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="index.html" class="btn btn-neutral float-left" title="Welcome to Outreach System documentation!" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Mohammed Wajaahath.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
